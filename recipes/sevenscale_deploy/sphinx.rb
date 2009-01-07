@@ -1,7 +1,7 @@
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :sphinx do
     desc 'Install beanstalk server'
-    task :install, :roles => :app, :only => { :sphinx => true } do
+    task :install, :roles => :sphinx do
       url = 'http://sphinxsearch.com/downloads/sphinx-0.9.8.1.tar.gz'
       filename = 'sphinx-0.9.8.1.tar.gz'
       expanded_directory = 'sphinx-0.9.8.1'
@@ -14,14 +14,14 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc 'Index the sphinx datastore'
-    task :index, :roles => :app, :only => { :sphinx => true } do
+    task :index, :roles => :sphinx do
       rails_env = fetch(:rails_env, "production")
 
       run "cd #{latest_release} && rake RAILS_ENV=#{rails_env} thinking_sphinx:index"
     end
 
     desc 'Update sphinx config'
-    task :configure, :roles => :app, :only => { :sphinx => true } do
+    task :configure, :roles => :sphinx do
       rails_env = fetch(:rails_env, "production")
 
       run "cd #{latest_release} && rake RAILS_ENV=#{rails_env} thinking_sphinx:configure"
