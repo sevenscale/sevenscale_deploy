@@ -31,7 +31,9 @@ Capistrano::Configuration.instance(:must_exist).load do
       ports = []
       1.upto(mongrel_instances) { |idx| ports << mongrel_port_base + idx - 1 }
 
-      apache_config = ERB.new(File.read('cap/assets/apache.conf'), nil, '-')
+      filename = File.join(File.dirname(__FILE__), 'cap/assets/apache.conf')
+
+      apache_config = ERB.new(File.read(filename), nil, '-')
       put apache_config.result(binding), "#{latest_release}/tmp/#{application}.conf"
       sudo "cp #{latest_release}/tmp/#{application}.conf /etc/httpd/conf.d/#{application}.conf"
     end
