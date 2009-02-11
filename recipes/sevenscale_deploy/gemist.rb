@@ -17,22 +17,24 @@ module Gemist
     end
 
     namespace :gems do
-      unless @_gemist_tasks_defined
-        desc "Install all required gems"
-        task :install do
-          @@gems.keys.each do |role|
-            send(role).send(:install)
-          end
+      desc "Install all required gems"
+      task :install do
+        @@gems.keys.each do |role|
+          send(role).send(:install)
         end
-        @_gemist_tasks_defined = true
       end
+    end
 
-      namespace role do
-        desc "Install required gems"
-        task :install, :roles => role do
-          @@gems[role].each do |gem,version|
-            gemist.install_gem(gem, version)
-          end
+    task_opts = {}
+    unless role == :all
+      task_opts = { :roles => role }
+    end
+
+    namespace role do
+      desc "Install required gems"
+      task :install, task_opts do
+        @@gems[role].each do |gem,version|
+          gemist.install_gem(gem, version)
         end
       end
     end
@@ -55,7 +57,7 @@ module Gemist
     gem_install = fetch('gemist_gem_install') { "gem install --no-rdoc --no-ri" }
     gem_update  = fetch('gemist_gem_update') { gem_install.sub('install', 'update') }
 
-    send(run_method, "#{gem_update} --system")
+    sudo("#{gem_update} --system")
   end
 
   # Auto selects a gem from a list and installs it.
@@ -82,7 +84,7 @@ module Gemist
     selections={}
     gem_installed = %(ruby -rubygems -e 'exit(Gem.source_index.find_name(%(#{package}), %(#{version})).size > 0)')
     cmd = %(/bin/sh -c "#{gem_installed} || #{install_cmd}")
-    send run_method, cmd, :shell => false, :pty => true do |channel, stream, data|
+    sudo cmd, :shell => false, :pty => true do |channel, stream, data|
       data.each_line do |line|
         case line
         when /\s(\d+).*\(#{platform}\)/
