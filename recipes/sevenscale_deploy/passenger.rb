@@ -25,7 +25,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       apache_server_port    = fetch(:apache_server_port, 80)
       rails_env             = fetch(:rails_env, "production")
 
-      filename = File.join(File.dirname(__FILE__), 'cap/assets/passenger.conf')
+      filename = File.join(File.dirname(__FILE__), 'assets/passenger.conf')
 
       apache_config = ERB.new(File.read(filename), nil, '-')
       put apache_config.result(binding), "#{latest_release}/tmp/#{application}.conf"
