@@ -40,6 +40,10 @@ module Gemist
     end
   end
 
+  def all(*args)
+    self.role(:all, *args)
+  end
+
   def install_system
     url = "http://rubyforge.org/frs/download.php/45905/rubygems-1.3.1.tgz"
     filename = 'rubygems-1.3.1.tgz'
