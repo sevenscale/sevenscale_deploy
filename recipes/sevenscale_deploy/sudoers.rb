@@ -67,18 +67,20 @@ module SudoersManager
   def apply_to_sudoers(lines)
     lines = Array(lines)
 
+    # Lock sudoers file to prevent visudo from working
     run %{test '!' -f /etc/sudoers.tmp && touch /etc/sudoers.tmp}
 
     sudoers = ''
-    run("cat /etc/sudoers") { |channel, stream, data| sudoers << data if stream == :out }
+    run("cat /etc/sudoers") { |ch, st, data| sudoers << data if st == :out }
 
     sudoers_lines = sudoers.split(/\r?\n/)
-    sudoers_lines += [ "", lines.select { |line| sudoers_lines.include?(line) }, "" ]
+    sudoers_lines += [ "", lines.reject { |line| sudoers_lines.include?(line) }, "" ]
       
-    put sudoers_lines.flatten.join("\n"), '/etc/.cap.sudoers', :mode => 0600
+    put sudoers_lines.flatten.join("\n"), '/etc/.cap.sudoers', :mode => 0440
 
-    run %{visudo -c -f /etc/.cap.sudoers && cp /etc/sudoers /etc/sudoers~ && mv /etc/.cap.sudoers /etc/sudoers && rm -f /etc/sudoers.tmp }
+    run %{visudo -c -f /etc/.cap.sudoers && /usr/bin/install -b -m 440 -o root -g root  /etc/.cap.sudoers /etc/sudoers && rm -f /etc/.cap.sudoers /etc/sudoers.tmp }
   rescue
+    # Remove sudoers lock file
     run "rm -f /etc/sudoers.tmp"
     raise
   end
