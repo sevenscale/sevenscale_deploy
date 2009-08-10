@@ -83,25 +83,23 @@ module SudoersManager
   end
   
   def run_as_root
-    begin
-      normal_user = fetch(:user)
+    normal_user = fetch(:user)
 
-      if normal_user != 'root'
-        normal_password = fetch(:password)
+    if normal_user != 'root'
+      normal_password = fetch(:password)
 
-        if fetch(:root_needs_password, true)
-          logger.info "Command must run as root. Please specify root password."
-          set(:user, 'root')
-          set(:password, Capistrano::CLI.password_prompt)
-        end
+      if fetch(:root_needs_password, true)
+        logger.info "Command must run as root. Please specify root password."
+        set(:user, 'root')
+        set(:password, Capistrano::CLI.password_prompt)
       end
-    
-      yield
-    ensure
-      if normal_user != 'root'
-        set(:user, normal_user)
-        set(:password, normal_password)
-      end
+    end
+  
+    yield
+  ensure
+    if normal_user != 'root'
+      set(:user, normal_user)
+      set(:password, normal_password)
     end
   end
 end
