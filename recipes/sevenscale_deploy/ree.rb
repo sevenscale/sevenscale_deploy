@@ -11,13 +11,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       expanded_directory = filename[/^(.+)\.tar/, 1]
 
       # Remove ruby RPM
-      sudo "yum -ey ruby"
+      sudo "yum erase -y ruby"
 
       run "mkdir -p #{shared_path}/opt/src #{shared_path}/opt/dist #{shared_path}/opt/bin"
       run "curl -L -s -S -o #{shared_path}/opt/dist/#{filename} #{url}"
       run "rm -rf #{shared_path}/opt/src/#{expanded_directory}"
       run "tar zxvf #{shared_path}/opt/dist/#{filename} -C #{shared_path}/opt/src"
-      run "cd #{shared_path}/opt/src/#{expanded_directory} && #{sudo} ./installer -a /usr"
+      run "cd #{shared_path}/opt/src/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems"
     end
   end
 end

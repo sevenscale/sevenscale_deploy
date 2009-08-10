@@ -39,7 +39,7 @@ module Rpmist
   def install_rpms(*rpms)
     rpm_list = rpms.flatten.join(' ')
 
-    sudo "yum install -y #{rpm_list}", :pty => true
+    sudo "yum install -qy #{rpm_list}", :pty => true
   end
 end
 

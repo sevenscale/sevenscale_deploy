@@ -30,7 +30,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Configure Passenger"
     task :update_config, :only => { :passenger => true } do
       passenger_root = capture("passenger-config --root").chomp
-      ruby_path      = capture("whereis ruby").chomp
+      ruby_path      = capture("/usr/bin/whereis -b ruby")[/ruby: ([^ ]+)/, 1]
 
       passenger_config =<<-EOF
         LoadModule passenger_module #{passenger_root}/ext/apache2/mod_passenger.so
@@ -38,8 +38,10 @@ Capistrano::Configuration.instance(:must_exist).load do
         PassengerRuby #{ruby_path}
       EOF
 
-      put passenger_config, "#{latest_release}/tmp/passenger.conf"
-      sudo "cp #{latest_release}/tmp/passenger.conf /etc/apache2/conf.d/passenger.conf"
+      passenger_config_file = "/tmp/.passenger.conf.#{$$}"
+
+      put passenger_config, passenger_config_file
+      sudo "cp #{passenger_config_file} /etc/httpd/conf.d/passenger.conf && rm -f #{passenger_config_file}"
       apache.restart
     end
 
