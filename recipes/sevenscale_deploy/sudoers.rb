@@ -13,40 +13,29 @@
 #
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :sudoers do
-    @@users = []
-
-    def users
-      @@users
+    namespace :apply do
+      desc "Apply all sudoers"
+      task :default do
+        tasks.each do |name, task|
+          execute_task(task) unless task == default_task
+        end
+      end
     end
 
+
     def enable_wheel
-      namespace :sudoers do
-        namespace :apply do
-          desc "Enable users in the wheel group"
-          task :wheel do
-            sudoers.apply_to_sudoers [
-              "%wheel	ALL=(ALL)	ALL"
-            ]
-          end
+      namespace :apply do
+        desc "Enable users in the wheel group"
+        task :wheel do
+          sudoers.apply_to_sudoers [
+            "%wheel	ALL=(ALL)	ALL"
+          ]
         end
       end
     end
 
     def enable(target_user)
-      @@users << target_user
-
       namespace :apply do
-        desc "Apply all sudoers"
-        task :default do
-          sudoers.users.each do |user|
-            send(user)
-          end
-
-          if respond_to?(:wheel)
-            send(:wheel)
-          end
-        end
-
         desc "Apply sudoers for #{target_user}"
         task target_user do
           sudoers.apply_to_sudoers [
