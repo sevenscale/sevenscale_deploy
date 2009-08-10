@@ -1,7 +1,7 @@
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :passenger do
-    # after 'deploy:update_code', 'passenger:config'
-    
+    after 'deploy:update_code', 'passenger:config'
+
     desc "[passenger] Start Application (nothing)"
     task :start, :roles => :app, :only => { :passenger => true } do
       # nothing
@@ -16,7 +16,33 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :restart, :roles => :app, :only => { :passenger => true } do
       run "touch #{current_path}/tmp/restart.txt"
     end
-    
+
+    desc "Reload Apache config"
+    task :reload, :only => { :passenger => true } do
+      apache.reload
+    end
+
+    desc "Install Passenger"
+    task :install, :only => { :passenger => true } do
+      sudo "passenger-install-apache2-module --auto"
+    end
+
+    desc "Configure Passenger"
+    task :update_config, :only => { :passenger => true } do
+      passenger_root = capture("passenger-config --root").chomp
+      ruby_path      = capture("whereis ruby").chomp
+
+      passenger_config =<<-EOF
+        LoadModule passenger_module #{passenger_root}/ext/apache2/mod_passenger.so
+        PassengerRoot #{passenger_root}
+        PassengerRuby #{ruby_path}
+      EOF
+
+      put passenger_config, "#{latest_release}/tmp/passenger.conf"
+      sudo "cp #{latest_release}/tmp/passenger.conf /etc/apache2/conf.d/passenger.conf"
+      apache.restart
+    end
+
     desc "Deploy configuration"
     task :config, :roles => :app, :only => { :passenger => true } do
       apache_admin_email    = fetch(:apache_admin_email, 'noone@nowhere.local')
@@ -30,6 +56,9 @@ Capistrano::Configuration.instance(:must_exist).load do
       apache_config = ERB.new(File.read(filename), nil, '-')
       put apache_config.result(binding), "#{latest_release}/tmp/#{application}.conf"
       sudo "cp #{latest_release}/tmp/#{application}.conf /etc/httpd/conf.d/#{application}.conf"
+
+      # Reload apache config
+      reload
     end
   end
 end

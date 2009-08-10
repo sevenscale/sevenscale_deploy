@@ -13,6 +13,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       sudo "/etc/rc.d/init.d/httpd restart"
     end
 
+    desc "Reload apache"
+    task :reload, :roles => :app, :only => { :apache => true } do
+      sudo "/etc/rc.d/init.d/httpd reload"
+    end
+
     desc "Setup SELinux to allow httpd to proxy"
     task :selinux, :roles => :app, :only => { :apache => true } do
       sudo "/usr/sbin/setsebool -P httpd_can_network_connect on"
