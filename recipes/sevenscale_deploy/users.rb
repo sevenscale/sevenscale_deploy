@@ -21,14 +21,22 @@ Capistrano::Configuration.instance(:must_exist).load do
     def create_user(user, options = {})
       via = fetch(:user) == 'root' ? :run : :sudo
 
-      command = "grep -q '^#{user}:' /etc/passwd || /usr/sbin/useradd '#{user}'"
-      args = []
+      command = "grep -q '^#{user}:' /etc/passwd || /usr/sbin/useradd #{user}"
+      command_options = ''
 
       if options[:groups]
-        command << " -G #{Array(options[:groups]).join(',')}"
+        command_options << " -G #{Array(options[:groups]).join(',')}"
+      end
+
+      if options[:password]
+        command_options << %{ --password '#{options[:password]}'}
       end
 
       invoke_command %{/bin/sh -c "#{command}"}, :via => via
+
+      unless command_options.empty?
+        invoke_command %{/usr/sbin/usermod #{command_options} #{user}}, :via => via
+      end
 
       update_authorized_keys2(user, options[:all_keys])
     end
