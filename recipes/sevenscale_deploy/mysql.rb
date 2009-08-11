@@ -5,12 +5,12 @@ Capistrano::Configuration.instance(:must_exist).load do
       sudo "/sbin/chkconfig mysqld on"
       sudo "/etc/rc.d/init.d/mysqld start"
     end
-    
+
     desc "Create database"
     task :create, :roles => :db do
       db_root_user     = fetch('db_root_user', 'root')
       db_root_password = fetch('db_root_password', nil)
-      
+
       db_user     = fetch('db_user') { fetch(:user) }
       db_password = fetch('db_password') { fetch(:password) }
       application = fetch('application')
@@ -36,11 +36,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       db_password = fetch('db_password') { fetch(:password) }
       application = fetch('application')
 
-      servers = self.roles.values.collect do |role| 
-        role.servers.collect do |server| 
+      servers = self.roles.values.collect do |role|
+        role.servers.collect do |server|
           [ server.host, IPSocket.getaddress(server.host) ]
         end
-      end.flatten.uniq 
+      end.flatten.uniq
 
       mysql_commands = []
 
@@ -56,27 +56,48 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
 
-    desc "Create database dump"
-    task :dump, :roles => :db, :only => { :primary => true } do
-      db_user     = fetch('db_user') { fetch(:user) }
-      db_password = fetch('db_password') { fetch(:password) }
-      application = fetch('application')
+    desc "Download database dump"
+    task :download, :roles => :db, :only => { :primary => true } do
+      dump
 
-      time_string = Time.now.strftime("%Y%m%d-%H%M%S")
+      download fetch(:backup_file), "tmp/#{File.basename(fetch(:backup_file))}"
+    end
 
-      dump_files = Hash.new do |h,k|
-        filename = File.join('tmp', "mysqldump-#{k}-#{time_string}.sql.gz")
-        puts "Writing to #{filename}"
-        h[k] = File.open(filename, IO::EXCL | IO::WRONLY | IO::CREAT)
+    desc "Create database backup of all databases"
+    task :backup, :roles => :db, :only => { :primary => true } do
+      db_root_user     = fetch(:db_root_user, 'root')
+      db_root_password = fetch(:db_root_password, nil)
+
+      time_string          = Time.now.strftime("%Y%m%d-%H%M%S")
+      remote_filename      = "mysqldump-all-#{time_string}.sql"
+      full_remote_filename = "#{shared_path}/db_backups/#{remote_filename}"
+
+      cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump -u"#{db_root_user}" -p --all-databases --add-drop-database --create-options --flush-privileges -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
+
+      run cmd do |ch, stream, out |
+         ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
       end
 
-      remote_filename = "mysqldump-$CAPISTRANO:HOST$-#{time_string}.sql.gz"
+      set :backup_file, "#{full_remote_filename}.bz2"
+    end
 
-      cmd = %{mysqldump -u"#{db_user}" -p "#{application}" | gzip -c9 > /tmp/#{remote_filename}}
+    desc "Create database dump"
+    task :dump, :roles => :db, :only => { :primary => true } do
+      db_user     = fetch(:db_user)     { fetch(:user) }
+      db_password = fetch(:db_password) { fetch(:password) }
+      db_name     = fetch(:db_name)     { fetch(:application) }
 
-      user_management.run_with_input cmd, /Enter password/, db_password
-      download "/tmp/#{remote_filename}", "tmp/#{remote_filename}"
-      run %{rm /tmp/#{remote_filename}}
+      time_string          = Time.now.strftime("%Y%m%d-%H%M%S")
+      remote_filename      = "mysqldump-#{application}-#{time_string}.sql"
+      full_remote_filename = "#{shared_path}/db_backups/#{remote_filename}"
+
+      cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump --add-drop-table -u"#{db_user}" -p "#{application}" -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
+
+      run cmd do |ch, stream, out |
+         ch.send_data "#{db_password}\n" if out=~ /^Enter password:/
+      end
+
+      set :backup_file, "#{full_remote_filename}.bz2"
     end
   end
 end

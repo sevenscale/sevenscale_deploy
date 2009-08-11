@@ -3,23 +3,23 @@ Capistrano::Configuration.instance(:must_exist).load do
     # after 'deploy:update_code', 'apache:config'
     
     desc "Enable apache on boot and start"
-    task :enable, :roles => :app, :only => { :apache => true } do
+    task :enable, :only => { :apache => true } do
       sudo "/sbin/chkconfig httpd on"
       sudo "/etc/rc.d/init.d/httpd start"
     end
 
     desc "Restart apache"
-    task :restart, :roles => :app, :only => { :apache => true } do
+    task :restart, :only => { :apache => true } do
       sudo "/etc/rc.d/init.d/httpd restart"
     end
 
     desc "Reload apache"
-    task :reload, :roles => :app, :only => { :apache => true } do
+    task :reload, :only => { :apache => true } do
       sudo "/etc/rc.d/init.d/httpd reload"
     end
 
     desc "Setup SELinux to allow httpd to proxy"
-    task :selinux, :roles => :app, :only => { :apache => true } do
+    task :selinux, :only => { :apache => true } do
       sudo "/usr/sbin/setsebool -P httpd_can_network_connect on"
     end
 
