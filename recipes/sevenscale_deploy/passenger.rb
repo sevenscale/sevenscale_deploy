@@ -54,7 +54,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       configuration = {}
       configuration[:domain]         = fetch(:apache_server_name)
       configuration[:domain_aliases] = fetch(:apache_server_aliases)
-      configuration[:deploy_to]      = current_path
+      configuration[:deploy_to]      = fetch(:deploy_to)
 
       configuration[:passenger] = {}
       configuration[:passenger][:rails_env] = fetch(:rails_env, "production")
