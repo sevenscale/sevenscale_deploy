@@ -29,8 +29,9 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Configure Passenger"
     task :update_config, :only => { :passenger => true } do
-      passenger_root = capture("passenger-config --root").chomp
-      ruby_path      = capture("/usr/bin/whereis -b ruby")[/ruby: ([^ ]+)/, 1]
+
+      passenger_root = fetch(:passenger_root) { capture("passenger-config --root").chomp }
+      ruby_path      = fetch(:ruby)           { capture("/usr/bin/whereis -b ruby")[/ruby: ([^ ]+)/, 1] }
 
       passenger_config =<<-EOF
         LoadModule passenger_module #{passenger_root}/ext/apache2/mod_passenger.so
