@@ -9,7 +9,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Create database"
     task :create, :roles => :db do
       db_root_user     = fetch(:db_root_user, 'root')
-      db_root_password = fetch(:db_root_password)
+      db_root_password = fetch(:db_root_password, nil)
 
       db_user     = fetch(:db_user)     { fetch(:user) }
       db_password = fetch(:db_password) { fetch(:password) }
@@ -30,7 +30,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Grant database access to all hosts"
     task :grant, :roles => :db do
       db_root_user     = fetch(:db_root_user, 'root')
-      db_root_password = fetch(:db_root_password)
+      db_root_password = fetch(:db_root_password, nil)
 
       db_user     = fetch(:db_user)     { fetch(:user) }
       db_password = fetch(:db_password) { fetch(:password) }
@@ -66,7 +66,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Create database backup of all databases"
     task :backup, :roles => :db, :only => { :primary => true } do
       db_root_user     = fetch(:db_root_user, 'root')
-      db_root_password = fetch(:db_root_password)
+      db_root_password = fetch(:db_root_password, nil)
 
       time_string          = Time.now.strftime("%Y%m%d-%H%M%S")
       remote_filename      = "mysqldump-all-#{time_string}.sql"
