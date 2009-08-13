@@ -47,11 +47,19 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Deploy configuration"
     task :config, :roles => :app, :only => { :passenger => true } do
-      apache_admin_email    = fetch(:apache_admin_email, 'noone@nowhere.local')
-      apache_server_name    = fetch(:apache_server_name, 'site.local')
-      apache_server_aliases = Array(fetch(:apache_server_aliases, []))
-      apache_server_port    = fetch(:apache_server_port, 80)
-      rails_env             = fetch(:rails_env, "production")
+      configuration = {}
+      configuration[:domain]         = fetch(:apache_server_name)
+      configuration[:domain_aliases] = fetch(:apache_server_aliases)
+      configuration[:deploy_to]      = current_path
+
+      configuration[:passenger] = {}
+      configuration[:passenger][:rails_env] = fetch(:rails_env, "production")
+
+      configuration[:ssl] = {}
+      configuration[:ssl][:certificate_file]     = fetch(:apache_ssl_certificate_file)
+      configuration[:ssl][:certificate_key_file] = fetch(:apache_ssl_certificate_key_file)
+
+      configuration[:apache] = {}
 
       filename = File.join(File.dirname(__FILE__), 'assets/passenger.conf')
 
@@ -61,6 +69,16 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       # Reload apache config
       reload
+    end
+    
+    def passenger_config_boolean(key)
+      if key.nil?
+        nil
+      elsif key == 'Off' || (!!key) == false
+        'Off'
+      else
+        'On'
+      end
     end
   end
 end
