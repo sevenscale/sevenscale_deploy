@@ -32,7 +32,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       httpd_conf_dir = fetch(:httpd_conf_dir, '/etc/httpd/conf.d')
 
       passenger_root = fetch(:passenger_root) { capture("passenger-config --root").chomp }
-      ruby_path      = fetch(:ruby)           { capture("/usr/bin/whereis -b ruby")[/ruby: ([^ ]+)/, 1] }
+      ruby_path      = fetch(:ruby)           { capture("/usr/bin/which ruby").chomp }
 
       passenger_config =<<-EOF
         LoadModule passenger_module #{passenger_root}/ext/apache2/mod_passenger.so
