@@ -25,6 +25,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Install Passenger"
     task :install, :only => { :passenger => true } do
       sudo "passenger-install-apache2-module --auto"
+
+      passenger.update_config
     end
 
     desc "Configure Passenger"
@@ -76,7 +78,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       # Reload apache config
       reload
     end
-    
+
     def passenger_config_boolean(key)
       if key.nil?
         nil
