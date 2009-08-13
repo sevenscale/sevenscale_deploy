@@ -1,3 +1,21 @@
+# Capistrano plugin to manage users
+#
+# Author: Eric Lindvall <eric@sevenscale.com>
+#
+# Usage:
+#
+# # Enable the user set for the application
+# users.activate fetch(:user), :all_keys => true
+# users.activate 'eric',       :groups => 'wheel', :password => '$1$iavkeX$qLiAcv5ga5TkmfYJx/'
+#
+#
+# Key Location:
+#
+# Store the keys in ssh_keys/<user>/key_file_name
+#
+# You can name the file anything you want -- the hostname of the system
+# is safe.
+#
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :users do
     namespace :create do

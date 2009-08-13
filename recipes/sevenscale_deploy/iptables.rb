@@ -1,3 +1,18 @@
+# Capistrano plugin to manage iptables
+#
+# Author: Eric Lindvall <eric@sevenscale.com>
+#
+# Usage:
+#
+# # Allow web and SSL for app servers
+# iptables.role :app, 80, 443
+# 
+# # Allow ActiveMQ Stomp connections from app instances
+# iptables.role :activemq, 61613, :from_roles => %w(app)
+# 
+# # Allow mysql from any app server
+# iptables.role :db, 3306, :from_roles => %w(app)
+#
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :iptables do
     def rules
@@ -17,24 +32,31 @@ Capistrano::Configuration.instance(:must_exist).load do
       role(:all, port, options)
     end
 
-    def role(role, port, options = {})
+    def role(role, *ports)
+      options = ports.extract_options!
       task_opts = role == :all ? {} : { :roles => role }
 
-      iptables.rules[role.to_sym] << options.merge({ :port => port })
+      options[:protocol] ||= 'tcp'
 
-      namespace :apply do
-        desc "Allow port #{port}/#{options[:protocol] || 'tcp'} in iptables"
-        task role, task_opts do
-          chain_prefix = "#{fetch(:application).upcase}-#{role.to_s.upcase}"
-          chain = "#{chain_prefix[0..23]}-INPUT"
+      ports.each do |port|
+        iptables.rules[role.to_sym] << options.merge({ :port => port })
 
-          iptables.flush(chain)
+        port_description = iptables.rules[role.to_sym].map { |o| "#{o[:port]}/#{o[:protocol]}" }.join(', ')
 
-          iptables.rules[role.to_sym].each do |rule|
-            iptables.enable(chain, rule[:port], rule[:protocol] || 'tcp')
+        namespace :apply do
+          desc "Allow port #{port_description} in iptables"
+          task role, task_opts do
+            chain_prefix = "#{fetch(:application).upcase}-#{role.to_s.upcase}"
+            chain = "#{chain_prefix[0..23]}-INPUT"
+
+            iptables.flush(chain)
+
+            iptables.rules[role.to_sym].each do |rule|
+              iptables.enable(chain, rule[:port], rule[:protocol])
+            end
+
+            iptables.save
           end
-
-          iptables.save
         end
       end
     end
