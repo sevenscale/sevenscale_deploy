@@ -61,10 +61,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       configuration[:passenger] = {}
       configuration[:passenger][:rails_env] = fetch(:rails_env, "production")
 
-      if fetch(:apache_ssl_certificate_file) && fetch(:apache_ssl_certificate_key_file)
+      apache_ssl_certificate_file     = fetch(:apache_ssl_certificate_file, nil)
+      apache_ssl_certificate_key_file = fetch(:apache_ssl_certificate_key_file, nil)
+
+      if apache_ssl_certificate_file && apache_ssl_certificate_key_file
         configuration[:ssl] = {}
-        configuration[:ssl][:certificate_file]     = fetch(:apache_ssl_certificate_file)
-        configuration[:ssl][:certificate_key_file] = fetch(:apache_ssl_certificate_key_file)
+        configuration[:ssl][:certificate_file]     = apache_ssl_certificate_file
+        configuration[:ssl][:certificate_key_file] = apache_ssl_certificate_key_file
       end
 
       configuration[:apache] = {}
