@@ -42,6 +42,9 @@ Capistrano::Configuration.instance(:must_exist).load do
         end
       end.flatten.uniq
 
+      # Make sure we include localhost
+      servers += %w(localhost 127.0.0.1)
+
       mysql_commands = []
 
       servers.each do |server|
