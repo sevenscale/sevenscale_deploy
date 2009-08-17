@@ -8,16 +8,16 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Create database"
     task :create, :roles => :db do
-      db_root_user     = fetch('db_root_user', 'root')
-      db_root_password = fetch('db_root_password', nil)
+      db_root_user     = fetch(:db_root_user, 'root')
+      db_root_password = fetch(:db_root_password, nil)
 
-      db_user     = fetch('db_user') { fetch(:user) }
-      db_password = fetch('db_password') { fetch(:password) }
-      application = fetch('application')
+      db_user     = fetch(:db_user)     { fetch(:user) }
+      db_password = fetch(:db_password) { fetch(:password) }
+      db_name     = fetch(:db_name)     { fetch(:application) }
 
       mysql_commands = []
-      mysql_commands <<  %{CREATE DATABASE #{application};}
-      mysql_commands << %{GRANT ALL PRIVILEGES ON #{application}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}';}
+      mysql_commands << %{CREATE DATABASE #{db_name};}
+      mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}';}
       mysql_commands << %{FLUSH PRIVILEGES;}
 
       mysql_commands.each do |command|
@@ -29,12 +29,12 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Grant database access to all hosts"
     task :grant, :roles => :db do
-      db_root_user     = fetch('db_root_user', 'root')
-      db_root_password = fetch('db_root_password', nil)
+      db_root_user     = fetch(:db_root_user, 'root')
+      db_root_password = fetch(:db_root_password, nil)
 
-      db_user     = fetch('db_user')     { fetch(:user) }
-      db_password = fetch('db_password') { fetch(:password) }
-      application = fetch('application')
+      db_user     = fetch(:db_user)     { fetch(:user) }
+      db_password = fetch(:db_password) { fetch(:password) }
+      db_name     = fetch(:db_name)     { fetch(:application) }
 
       servers = self.roles.values.collect do |role|
         role.servers.collect do |server|
@@ -48,7 +48,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       mysql_commands = []
 
       servers.each do |server|
-        mysql_commands << %{GRANT ALL PRIVILEGES ON #{application}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
+        mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
       end
       mysql_commands << %{FLUSH PRIVILEGES;}
 
