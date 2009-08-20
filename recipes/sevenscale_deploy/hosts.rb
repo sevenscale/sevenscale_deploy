@@ -2,7 +2,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace :hosts do
     desc "Update hostname to match deployment spec"
     task :update_hostname do
-      sudo %{/bin/sh -c "ruby -npe 'gsub(/HOSTNAME=.*/, %{HOSTNAME=$CAPISTRANO:HOST$})' /etc/sysconfig/network > /etc/sysconfig/.cap.network && /bin/mv /etc/sysconfig/.cap.network /etc/sysconfig/network && /bin/hostname $CAPISTRANO:HOST$"}
+      sudo %{/bin/sh -c "ruby -npi~ -e 'gsub(/HOSTNAME=.*/, %{HOSTNAME=$CAPISTRANO:HOST$})' /etc/sysconfig/network && /bin/hostname $CAPISTRANO:HOST$"}
     end
 
     desc "Update /etc/hosts to include hostname"
