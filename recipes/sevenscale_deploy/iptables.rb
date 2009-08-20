@@ -63,7 +63,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     def enable(chain, port, protocol, options = {})
       if from_roles = (options[:from_role] || options[:from_roles])
-        servers = find_servers(:roles => from_roles).collect do |server|
+        servers = find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
           IPSocket.getaddress(server.host)
         end
 

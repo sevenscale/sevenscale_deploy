@@ -13,7 +13,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       
       use_seamless_database_pool = fetch(:use_seamless_database_pool, false)
 
-      primary_db_host = find_servers(:roles => :db, :only => { :primary => true }).first.host
+      primary_db_host = find_servers(:roles => :db, :only => { :primary => true }, :skip_hostfilter => true).first.host
 
       database_yml = {}
       database_spec = database_yml[rails_env] = {}
@@ -25,7 +25,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       database_spec['host']     = primary_db_host
       
       if use_seamless_database_pool
-        all_db_hosts = find_servers(:roles => :db).collect { |s| s.host }.uniq
+        all_db_hosts = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
 
         database_spec['pool_adapter'] = database_spec['adapter']
         database_spec['adapter']      = 'seamless_database_pool'
