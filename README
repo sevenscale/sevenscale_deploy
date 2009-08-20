@@ -7,7 +7,46 @@ Basic deployment recipes for Capistrano.
 Example
 =======
 
-This will include examples soon.
+This will include more examples soon.
+
+
+IPTables
+========
+
+    # Allow web and SSL for app servers
+    iptables.role :app, 80, 443
+
+    # Allow ActiveMQ Stomp connections from app instances
+    iptables.role :activemq, 61613, :from_roles => %w(app)
+
+    # Allow mysql from any app server
+    iptables.role :db, 3306, :from_roles => %w(app)
+
+
+Sudoers
+=======
+
+    # Enable the user set for the application
+    sudoers.enable fetch(:user)
+
+    # Enable the wheel group
+    sudoers.enable_wheel
+
+
+Users
+=====
+
+    # Enable the user set for the application
+    users.activate fetch(:user), :all_keys => true
+    users.activate 'eric',       :groups => 'wheel', :password => '$1$iavkeX$qLiAcv5ga5TkmfYJx/'
+
+
+Key Location:
+
+Store the keys in ssh_keys/<user>/key_file_name
+
+You can name the file anything you want -- the hostname of the system
+is safe.
 
 
 Copyright (c) 2009 Seven Scale, released under the MIT license
