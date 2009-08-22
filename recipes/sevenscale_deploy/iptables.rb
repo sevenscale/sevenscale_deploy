@@ -52,7 +52,7 @@ Capistrano::Configuration.instance(:must_exist).load do
             iptables.flush(chain)
 
             iptables.rules[role.to_sym].each do |rule|
-              iptables.enable(chain, rule[:port], rule[:protocol])
+              iptables.enable(chain, rule[:port], rule[:protocol], rule)
             end
 
             iptables.save
