@@ -3,30 +3,32 @@ module Rpmist
 
   # Usage:
   #   role(:app, %w(hpricot mongrel))
-  def role(role, *rpms)
+  def role(roles, *rpms)
     options = {}
     
-    rpms.flatten.each do |rpm|
-      @@rpms[role][rpm] = options
-    end
+    Array(roles).each do |role|
+      rpms.flatten.each do |rpm|
+        @@rpms[role] = options
+      end
     
-    namespace :rpms do
-      desc "Install all required RPMs"
-      task :install do
-        @@rpms.keys.each do |role|
-          send(role).send(:install)
+      namespace :rpms do
+        desc "Install all required RPMs"
+        task :install do
+          @@rpms.keys.each do |role|
+            send(role).send(:install)
+          end
         end
-      end
 
-      task_opts = {}
-      unless role == :all
-        task_opts = { :roles => role }
-      end
+        task_opts = {}
+        unless role == :all
+          task_opts = { :roles => role }
+        end
       
-      namespace role do
-        desc "Install required RPMs"
-        task :install, task_opts do
-          rpmist.install_rpms(@@rpms[role].keys)
+        namespace role do
+          desc "Install required RPMs"
+          task :install, task_opts do
+            rpmist.install_rpms(@@rpms[role].keys)
+          end
         end
       end
     end
