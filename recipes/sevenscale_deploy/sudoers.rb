@@ -23,13 +23,15 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
 
-    def enable_wheel
+    def enable_wheel(options = {})
       namespace :apply do
         desc "Enable users in the wheel group"
         task :wheel do
-          sudoers.apply_to_sudoers [
-            "%wheel	ALL=(ALL)	ALL"
-          ]
+          if options[:no_password]
+            sudoers.apply_to_sudoers [ "%wheel	ALL=(ALL)	NOPASSWD: ALL" ]
+          else
+            sudoers.apply_to_sudoers [ "%wheel	ALL=(ALL)	ALL" ]
+          end
         end
       end
     end

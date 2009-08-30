@@ -5,36 +5,38 @@ module Gemist
   #   role(:app, %w(hpricot mongrel))
   # or
   #   role(:app, 'god', :version => '>= 0.7.7')
-  def role(role, *gems)
+  def role(roles, *gems)
     options = { :version => '>= 0' }
 
     if gems.last.is_a?(Hash)
       options.merge!(gems.pop)
     end
 
-    gems.flatten.each do |gem|
-      @@gems[role][gem] = options
-    end
+    Array(roles).each do |role|
+      gems.flatten.each do |gem|
+        @@gems[role][gem] = options
+      end
 
-    namespace :gems do
-      desc "Install all required gems"
-      task :install do
-        @@gems.keys.each do |role|
-          send(role).send(:install)
+      namespace :gems do
+        desc "Install all required gems"
+        task :install do
+          @@gems.keys.each do |role|
+            send(role).send(:install)
+          end
         end
       end
-    end
 
-    task_opts = {}
-    unless role == :all
-      task_opts = { :roles => role }
-    end
+      task_opts = {}
+      unless role == :all
+        task_opts = { :roles => role }
+      end
 
-    namespace role do
-      desc "Install required gems"
-      task :install, task_opts do
-        @@gems[role].each do |gem,version|
-          gemist.install_gem(gem, version)
+      namespace role do
+        desc "Install required gems"
+        task :install, task_opts do
+          @@gems[role].each do |gem,version|
+            gemist.install_gem(gem, version)
+          end
         end
       end
     end

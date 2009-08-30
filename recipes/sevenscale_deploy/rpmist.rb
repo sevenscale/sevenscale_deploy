@@ -1,47 +1,44 @@
-module Rpmist
-  @@rpms = Hash.new { |h,role| h[role] = {} }
+Capistrano::Configuration.instance(:must_exist).load do
+  require 'set'
 
-  # Usage:
-  #   role(:app, %w(hpricot mongrel))
-  def role(role, *rpms)
-    options = {}
-    
-    rpms.flatten.each do |rpm|
-      @@rpms[role][rpm] = options
-    end
-    
-    namespace :rpms do
-      desc "Install all required RPMs"
-      task :install do
-        @@rpms.keys.each do |role|
-          send(role).send(:install)
-        end
-      end
+  namespace :rpms do
+    @@rpms = Hash.new { |h,role| h[role] = Set.new }
 
-      task_opts = {}
-      unless role == :all
-        task_opts = { :roles => role }
-      end
-      
-      namespace role do
-        desc "Install required RPMs"
-        task :install, task_opts do
-          rpmist.install_rpms(@@rpms[role].keys)
+    namespace :install do
+      desc 'Install required RPMs for all roles'
+      task :default do
+        parallel do |session|
+          @@rpms.except(:all).keys.each do |role|
+            session.when "in?(:#{role.to_s})", yum_command_for(role)
+          end
+          session.else yum_command_for(:all)
         end
       end
     end
-  end
-  
-  def all(*rpms)
-    self.role(:all, *rpms)
-  end
-  
-  def install_rpms(*rpms)
-    rpm_list = rpms.flatten.join(' ')
 
-    sudo "yum install -qy #{rpm_list}", :pty => true
+    def all(*rpms)
+      @@rpms[:all].merge(rpms.flatten)
+    end
+
+    def role(roles, *rpms)
+      Array(roles).each do |role|
+        role = role.to_sym
+
+        @@rpms[role].merge(rpms.flatten)
+
+        if role != :all
+          namespace :install do
+            desc "Install required RPMs for #{role}"
+            task role, :roles => role do
+              run yum_command_for(role)
+            end
+          end
+        end
+      end
+    end
+
+    def yum_command_for(role)
+      "#{sudo} yum -qy install #{(@@rpms[role.to_sym] + @@rpms[:all]).to_a.join(' ')}"
+    end
   end
 end
-
-Capistrano.plugin :rpmist, Rpmist
-
