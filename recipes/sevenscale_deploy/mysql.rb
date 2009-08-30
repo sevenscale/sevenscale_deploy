@@ -60,7 +60,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Download database dump"
-    task :download, :roles => :db, :only => { :primary => true } do
+    task :dump_to_local, :roles => :db, :only => { :primary => true } do
       dump
 
       download fetch(:backup_file), "tmp/#{File.basename(fetch(:backup_file))}"
