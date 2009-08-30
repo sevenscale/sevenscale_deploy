@@ -10,20 +10,20 @@ Capistrano::Configuration.instance(:must_exist).load do
       db_name     = fetch(:db_name)     { fetch(:application) }
       db_adapter  = fetch(:db_adapter, 'mysql')
       rails_env   = fetch(:rails_env, 'production')
-      
+
       use_seamless_database_pool = fetch(:use_seamless_database_pool, false)
 
       primary_db_host = find_servers(:roles => :db, :only => { :primary => true }, :skip_hostfilter => true).first.host
 
       database_yml = {}
       database_spec = database_yml[rails_env] = {}
-      
+
       database_spec['adapter']  = db_adapter
       database_spec['username'] = db_user
       database_spec['password'] = db_password
       database_spec['database'] = db_name
       database_spec['host']     = primary_db_host
-      
+
       if use_seamless_database_pool
         all_db_hosts = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
 
@@ -33,13 +33,43 @@ Capistrano::Configuration.instance(:must_exist).load do
         database_spec['read_pool']    = all_db_hosts.collect { |host| { 'host' => host } }
       end
 
-      run "mkdir -p #{shared_path}/config" 
+      run "mkdir -p #{shared_path}/config"
       put YAML::dump(database_yml), "#{shared_path}/config/database.yml", :mode => 0664
     end
 
-    desc "Make symlink for database yaml" 
+    desc "Make symlink for database yaml"
     task :symlink do
-      run "ln -nfs #{shared_path}/config/database.yml #{latest_release}/config/database.yml" 
+      run "ln -nfs #{shared_path}/config/database.yml #{latest_release}/config/database.yml"
+    end
+
+    desc "Create database"
+    task :create, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).create
+    end
+
+    desc "Grant database access to all hosts"
+    task :grant, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).grant
+    end
+
+    desc "Create database dump"
+    task :dump, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).dump
+    end
+
+    desc "Download database dump"
+    task :dump_to_local, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).dump_to_local
+    end
+
+    desc "Clone remote database to local database"
+    task :clone_to_local, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).dump_to_local
+    end
+
+    desc "Create database backup of all databases"
+    task :backup, :roles => :db, :only => { :primary => true } do
+      send(fetch(:db_adapter, 'mysql')).backup
     end
   end
 end

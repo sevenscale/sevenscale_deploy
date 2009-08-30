@@ -7,7 +7,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc "Create database"
-    task :create, :roles => :db do
+    task :create, :roles => :db, :only => { :primary => true } do
       db_root_user     = fetch(:db_root_user, 'root')
       db_root_password = fetch(:db_root_password, nil)
 
@@ -17,18 +17,19 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       mysql_commands = []
       mysql_commands << %{CREATE DATABASE #{db_name};}
-      mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}';}
-      mysql_commands << %{FLUSH PRIVILEGES;}
 
       mysql_commands.each do |command|
         mysql_auth = "-u#{db_root_user}"
-        mysql_auth << " -p'#{db_root_password}'" if db_root_password
-        run %(mysql #{mysql_auth} -e "#{command}")
+        mysql_auth << " -p" if db_root_password
+
+        run %(mysql #{mysql_auth} -e "#{command}") do |ch, stream, out|
+          ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
+        end
       end
     end
 
     desc "Grant database access to all hosts"
-    task :grant, :roles => :db do
+    task :grant, :roles => :db, :only => { :primary => true } do
       db_root_user     = fetch(:db_root_user, 'root')
       db_root_password = fetch(:db_root_password, nil)
 
@@ -54,8 +55,11 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       mysql_commands.each do |command|
         mysql_auth = "-u#{db_root_user}"
-        mysql_auth << " -p'#{db_root_password}'" if db_root_password
-        run %(mysql #{mysql_auth} -e "#{command}")
+        mysql_auth << " -p" if db_root_password
+
+        run %(mysql #{mysql_auth} -e "#{command}") do |ch, stream, out|
+          ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
+        end
       end
     end
 
@@ -64,6 +68,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       dump
 
       download fetch(:backup_file), "tmp/#{File.basename(fetch(:backup_file))}"
+    end
+
+    desc "Clone remote database to local database"
+    task :clone_to_local, :roles => :db, :only => { :primary => true } do
+      local_rails_env      = fetch(:local_rails_env, "development")
+      database_environment = YAML::load(ERB.new(IO.read("config/database.yml")).result)[local_rails_env]
+
+      dump
+
+      download fetch(:backup_file), "tmp/#{File.basename(fetch(:backup_file))}"
+
+      mysql_command = "mysql -u #{database_environment['username']}"
+      mysql_command << " --password='#{database_environment['password']}'" if database_environment['password']
+      mysql_command << " -h #{database_environment['host']}"               if database_environment['host']
+      mysql_command << " #{database_environment['database']}"
+
+      full_command = %{bzip2 -cd tmp/#{File.basename(fetch(:backup_file))} | #{mysql_command}}
+      logger.debug %{locally executing "#{full_command}"}
+      logger.debug %x{#{full_command}}
     end
 
     desc "Create database backup of all databases"
@@ -77,8 +100,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump -u"#{db_root_user}" -p --all-databases --add-drop-database --create-options --flush-privileges -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
 
-      run cmd do |ch, stream, out |
-         ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
+      run cmd do |ch, stream, out|
+        ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
       end
 
       set :backup_file, "#{full_remote_filename}.bz2"
@@ -96,8 +119,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump --add-drop-table -u"#{db_user}" -p "#{application}" -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
 
-      run cmd do |ch, stream, out |
-         ch.send_data "#{db_password}\n" if out=~ /^Enter password:/
+      run cmd do |ch, stream, out|
+        ch.send_data "#{db_password}\n" if out=~ /^Enter password:/
       end
 
       set :backup_file, "#{full_remote_filename}.bz2"
