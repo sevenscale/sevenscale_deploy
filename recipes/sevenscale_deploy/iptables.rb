@@ -33,7 +33,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     def role(role, *ports)
-      options = ports.extract_options!
+      options   = ports.last.is_a?(Hash) ? ports.pop : {}
+
       task_opts = role == :all ? {} : { :roles => role }
 
       options[:protocol] ||= 'tcp'
