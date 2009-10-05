@@ -11,7 +11,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       expanded_directory = filename[/^(.+)\.tar/, 1]
 
       # Remove ruby RPM
-      sudo "yum erase -y ruby"
+      sudo "yum erase -y ruby || true"
 
       run "mkdir -p #{shared_path}/opt/src #{shared_path}/opt/dist #{shared_path}/opt/bin"
       run "curl -L -s -S -o #{shared_path}/opt/dist/#{filename} #{url}"
