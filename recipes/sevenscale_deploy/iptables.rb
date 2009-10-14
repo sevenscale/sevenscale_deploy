@@ -19,6 +19,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       @@rules ||= Hash.new { |h,role| h[role] = [] }
     end
 
+    def alternate_hostnames
+      @@alternate_hostnames ||= Hash.new { |h,host| h[host] = [] }
+    end
+
+    def alternate_hostname(host, *alternates)
+      alternate_hostnames[host] += alternates.flatten
+    end
+
     namespace :apply do
       desc "Apply all iptables settings"
       task :default do
@@ -85,7 +93,9 @@ Capistrano::Configuration.instance(:must_exist).load do
     def enable_commands(chain, port, protocol, options = {})
       if from_roles = (options[:from_role] || options[:from_roles])
         servers = find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
-          IPSocket.getaddress(server.host)
+          [ server.host, alternate_hostnames[server.host] ].flatten.uniq.each do |host|
+            IPSocket.getaddress(host)
+          end
         end
 
         servers.flatten.uniq.collect do |ip_address|
