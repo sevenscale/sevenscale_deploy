@@ -5,7 +5,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Install Ruby Enterprise Edition"
     task :install do
-      url = 'http://rubyforge.org/frs/download.php/58677/ruby-enterprise-1.8.6-20090610.tar.gz'
+      url = 'http://rubyforge.org/frs/download.php/66162/ruby-enterprise-1.8.7-2009.10.tar.gz'
 
       filename = File.basename(url)
       expanded_directory = filename[/^(.+)\.tar/, 1]
