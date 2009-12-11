@@ -117,7 +117,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       remote_filename      = "mysqldump-#{application}-#{time_string}.sql"
       full_remote_filename = "#{shared_path}/db_backups/#{remote_filename}"
 
-      cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump --add-drop-table -u"#{db_user}" -p "#{application}" -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
+      cmd = %{mkdir -p #{shared_path}/db_backups; mysqldump --add-drop-table -u"#{db_user}" -p "#{db_name}" -r #{full_remote_filename} && bzip2 -9 #{full_remote_filename}}
 
       run cmd do |ch, stream, out|
         ch.send_data "#{db_password}\n" if out=~ /^Enter password:/
