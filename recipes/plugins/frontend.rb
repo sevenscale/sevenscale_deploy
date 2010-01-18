@@ -15,8 +15,6 @@ module Frontend
       task :restart, :roles => :app do
         send(mechanism).restart
       end
-      
-      
     end
   end
 end
