@@ -29,7 +29,7 @@ module GemBundler
       release_gems_subdir = options[:gem_root] || 'vendor/gems/ruby/1.8'
     end
 
-    directories_for_shared = %w(gems specifications)
+    directories_for_shared = %w(gems specifications dirs)
 
     if options[:cache_cache]
       directories_for_shared << 'cache'
@@ -38,7 +38,7 @@ module GemBundler
     tasks = lambda do
       namespace :bundler do
         desc "Symlink the vendored directories to shared"
-        task :symlink_vendor do
+        task :symlink_vendor, :roles => options[:roles] do
           bundle_root  = File.join(release_path, bundle_root_subdir.to_s)
           shared_gems  = File.join(shared_path,  shared_gems_subdir)
           release_gems = File.join(bundle_root,  release_gems_subdir)
@@ -52,7 +52,7 @@ module GemBundler
         end
 
         desc "Run bundler on a new release"
-        task :bundle_new_release do
+        task :bundle_new_release, :roles => options[:roles] do
 
           bundle_root  = File.join(release_path, bundle_root_subdir.to_s)
           cmd = "cd #{bundle_root} && gem bundle"
