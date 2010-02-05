@@ -8,6 +8,7 @@ namespace :db do
     db_password = fetch(:db_password) { fetch(:password) }
     db_name     = fetch(:db_name)     { fetch(:application) }
     db_adapter  = fetch(:db_adapter, 'mysql')
+    db_pool     = fetch(:db_pool, 5)
     rails_env   = fetch(:rails_env, 'production')
 
     use_seamless_database_pool = fetch(:use_seamless_database_pool, false)
@@ -22,6 +23,7 @@ namespace :db do
     database_spec['password'] = db_password
     database_spec['database'] = db_name
     database_spec['host']     = primary_db_host
+    database_spec['pool']     = db_pool
 
     if use_seamless_database_pool
       all_db_hosts = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
