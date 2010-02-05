@@ -68,7 +68,11 @@ module GemBundler
       end
     end
 
-    namespace(outer_namespace, &tasks) if outer_namespace
+    if outer_namespace
+      namespace(outer_namespace, &tasks)
+    else
+      tasks.call
+    end
 
     unless options[:hook] == false
       our_hook_name = if outer_namespace
