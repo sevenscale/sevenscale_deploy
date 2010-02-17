@@ -29,7 +29,7 @@ module GemBundler
       release_gem_root = options[:gem_root] || 'vendor/gems'
     end
 
-    release_gem_subdir = options[:gem_subdir] || 'ruby/1.8'
+    release_gem_subdir = options[:gem_subdir]
 
     directories_for_shared = %w(gems specifications dirs)
 
@@ -43,7 +43,7 @@ module GemBundler
         task :symlink_vendor, :roles => options[:roles] do
           bundle_root  = File.join(release_path, bundle_root_subdir.to_s)
           shared_gems  = File.join(shared_path,  shared_gems_subdir)
-          release_gems = File.join(bundle_root,  release_gem_root, release_gem_subdir)
+          release_gems = File.join(bundle_root,  release_gem_root, release_gem_subdir.to_s)
 
           cmd = directories_for_shared.collect do |sub_dir|
             shared_sub_dir = File.join(shared_gems, sub_dir)
@@ -56,7 +56,7 @@ module GemBundler
         desc "Run bundler on a new release"
         task :bundle_new_release, :roles => options[:roles] do
           bundle_root  = File.join(release_path, bundle_root_subdir.to_s)
-          release_gems = File.join(bundle_root,  release_gem_root, release_gem_subdir)
+          release_gems = File.join(bundle_root,  release_gem_root, release_gem_subdir.to_s)
 
           cmd = "cd #{bundle_root} && bundle install #{release_gems}"
 
