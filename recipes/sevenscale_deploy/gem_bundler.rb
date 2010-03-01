@@ -37,8 +37,8 @@ module GemBundler
     namespace :bundler do
       desc 'Install correct version of gem bundler'
       task :install do
-        minimum_version          = '0.9.7'
-        minumim_rubygems_version = '1.3.5'
+        minimum_version          = '0.9.9'
+        minumim_rubygems_version = '1.3.6'
 
         commands = [
           "system(*%w(gem update --system)) if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new(%(#{minumim_rubygems_version}))",
