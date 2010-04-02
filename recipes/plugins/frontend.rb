@@ -16,6 +16,8 @@ module Frontend
         send(mechanism).restart
       end
     end
+
+    after 'deploy:update_code', "#{mechanism}:config"
   end
 end
 

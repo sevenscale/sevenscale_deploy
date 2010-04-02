@@ -1,6 +1,4 @@
 namespace :passenger do
-  after 'deploy:update_code', 'passenger:config'
-
   desc "[passenger] Start Application (nothing)"
   task :start, :roles => :app, :only => { :passenger => true } do
     # nothing

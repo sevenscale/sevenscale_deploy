@@ -9,6 +9,8 @@ namespace :rails do
   end
 
   task :mark_rails_env, :except => { :no_release => true } do
+    rails_env = fetch(:rails_env, "production")
+
     run "echo #{rails_env} > #{latest_release}/RAILS_ENV"
   end
 end
