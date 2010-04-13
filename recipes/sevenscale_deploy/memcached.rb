@@ -1,9 +1,10 @@
 namespace :memcached do   
   desc 'Install beanstalk server'
   task :install, :roles => :app, :only => { :memcached => true } do
-    url = 'http://www.danga.com/memcached/dist/memcached-1.2.6.tar.gz'
-    filename = 'memcached-1.2.6.tar.gz'
-    expanded_directory = 'memcached-1.2.6'
+    url = 'http://memcached.googlecode.com/files/memcached-1.4.5.tar.gz'
+
+    filename           = File.basename(url)
+    expanded_directory = filename[/^(.+)\.tar/, 1]
 
     run "mkdir -p #{shared_path}/opt/src #{shared_path}/opt/dist #{shared_path}/opt/bin"
     run "curl -o #{shared_path}/opt/dist/#{filename} #{url}"
