@@ -2,6 +2,7 @@ module GemBundler
   # options:
   #   :bundle_root
   #   :roles
+  #   :without
   #
   # gem_bundler.bundle
   # gem_bundler.bundle :downloader, :bundle_root => 'apps/downloader'
@@ -19,7 +20,9 @@ module GemBundler
           bundle_root     = File.join(release_path, bundle_root_subdir.to_s)
           shared_root_dir = File.join(shared_path, 'bundler')
 
-          run "cd #{bundle_root} && bundle install #{shared_root_dir}"
+          withouts = Array(options[:without]).map { |w| "--without #{w}"}.join(' ')
+
+          run "cd #{bundle_root} && bundle install #{withouts} #{shared_root_dir}"
         end
       end
     end
