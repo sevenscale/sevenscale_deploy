@@ -1,14 +1,10 @@
 module GemBundler
   # options:
   #   :bundle_root
-  #   :shared_subdir
-  #   :gem_root
-  #   :rails
-  #   :cache_cache
-  #   :only
+  #   :roles
   #
-  # gem_bundler.bundle :rails => true, :only => rails_env
-  # gem_bundler.bundle :downloader
+  # gem_bundler.bundle
+  # gem_bundler.bundle :downloader, :bundle_root => 'apps/downloader'
   #
   def bundle(*args)
     options         = args.last.is_a?(Hash) ? args.pop : {}
@@ -37,7 +33,7 @@ module GemBundler
     namespace :bundler do
       desc 'Install correct version of gem bundler'
       task :install do
-        minimum_version          = '0.9.9'
+        minimum_version          = '0.9.19'
         minumim_rubygems_version = '1.3.6'
 
         commands = [
