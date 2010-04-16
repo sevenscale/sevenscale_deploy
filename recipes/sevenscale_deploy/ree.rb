@@ -4,7 +4,7 @@ namespace :ree do
 
   desc "Install Ruby Enterprise Edition"
   task :install do
-    url = 'http://rubyforge.org/frs/download.php/66162/ruby-enterprise-1.8.7-2009.10.tar.gz'
+    url = 'http://rubyforge.org/frs/download.php/68719/ruby-enterprise-1.8.7-2010.01.tar.gz'
 
     filename = File.basename(url)
     expanded_directory = filename[/^(.+)\.tar/, 1]
@@ -14,7 +14,7 @@ namespace :ree do
 
     run "mkdir -p #{shared_path}/opt/src #{shared_path}/opt/dist #{shared_path}/opt/bin"
     run "curl -L -s -S -o #{shared_path}/opt/dist/#{filename} #{url}"
-    run "rm -rf #{shared_path}/opt/src/#{expanded_directory}"
+    sudo "rm -rf #{shared_path}/opt/src/#{expanded_directory}"
     run "tar zxvf #{shared_path}/opt/dist/#{filename} -C #{shared_path}/opt/src"
     run "cd #{shared_path}/opt/src/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems"
   end
