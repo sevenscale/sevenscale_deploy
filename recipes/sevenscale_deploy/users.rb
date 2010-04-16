@@ -76,6 +76,77 @@ namespace :users do
     invoke_command %{/bin/sh -c "#{commands}"}, :via => via
   end
 
+  def brute_force_authenticate
+    auths           = [ [ fetch(:user), fetch(:password) ] ]
+    auths_by_server = Hash.new{ |h,k| h[k] = [] }
+
+    find_servers.each do |server|
+      server_authed = auths.any? do |u, p|
+        if can_authenticate?(server, u, p)
+          auths_by_server[[u,p]] << server
+        end
+      end
+
+      if not server_authed
+        loop do
+          u = Capistrano::CLI.ui.ask("#{server.host} username: ")
+          p = nil
+          if can_authenticate?(server, u, p)
+            auths                  << [ u, p ]
+            auths_by_server[[u,p]] << server
+            break
+          else
+            p = Capistrano::CLI.password_prompt("#{server.host} password: ")
+            if can_authenticate?(server, u, p)
+              auths                  << [ u, p ]
+              auths_by_server[[u,p]] << server
+              break
+            end
+          end
+        end
+      end
+    end
+
+    auths_by_server
+  end
+
+  task :authenticate do
+    brute_force_authenticate.each do |(user, password), servers|
+      begin
+        old_user, old_password = fetch(:user), fetch(:password)
+
+        set(:user, user)
+        set(:password, password)
+
+        hosts = servers.map { |s| s.host }
+
+        with_env('HOSTFILTER', hosts.join(',')) do
+          users.create.default
+          sudoers.apply.default
+        end
+      ensure
+        set(:user, old_user)
+        set(:password, old_password)
+      end
+    end
+  end
+
+  def can_authenticate?(server, user, password)
+    via = fetch(:run_method, :sudo)
+    old_user, old_password = fetch(:user), fetch(:password)
+
+    set(:user, user);
+    set(:password, password)
+
+    invoke_command('/usr/bin/id', :via => via, :hosts => server)
+    return true
+  rescue Capistrano::ConnectionError, Capistrano::CommandError
+    return false
+  ensure
+    set(:user, old_user)
+    set(:password, old_password)
+  end
+
   def connect_as_root
     normal_user = fetch(:user)
     normal_password = fetch(:password)
