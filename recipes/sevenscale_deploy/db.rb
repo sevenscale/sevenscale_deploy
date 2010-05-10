@@ -11,9 +11,8 @@ namespace :db do
     db_pool     = fetch(:db_pool, 5)
     rails_env   = fetch(:rails_env, 'production')
 
-    use_seamless_database_pool = fetch(:use_seamless_database_pool, false)
-
     primary_db_host = find_servers(:roles => :db, :only => { :primary => true }, :skip_hostfilter => true).first.host
+    all_db_hosts    = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
 
     database_yml = {}
     database_spec = database_yml[rails_env] = {}
@@ -25,13 +24,15 @@ namespace :db do
     database_spec['host']     = primary_db_host
     database_spec['pool']     = db_pool
 
-    if use_seamless_database_pool
-      all_db_hosts = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
+    all_db_hosts.each do |db_host|
+      host_spec = database_spec[db_host] = {}
 
-      database_spec['pool_adapter'] = database_spec['adapter']
-      database_spec['adapter']      = 'seamless_database_pool'
-      database_spec['master']       = { 'host' => primary_db_host }
-      database_spec['read_pool']    = all_db_hosts.collect { |host| { 'host' => host } }
+      host_spec['adapter']  = db_adapter
+      host_spec['username'] = db_user
+      host_spec['password'] = db_password
+      host_spec['database'] = db_name
+      host_spec['host']     = db_host
+      host_spec['pool']     = db_pool
     end
 
     run "mkdir -p #{shared_path}/config"
