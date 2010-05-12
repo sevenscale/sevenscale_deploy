@@ -1,12 +1,15 @@
 # Originally lifted from:
 # http://github.com/vigetlabs/viget_deployment/tree/master/recipes/campfire.rb
-
+#
+# Usage:
+#
+#    campfire.register 'sevenscale', 'b8d9b31...', :room => 'crazypants', :ssl => true
+#
 namespace :campfire do
   set(:previous_current_revision) { raise "Previous current revision was never fetched" }
   
-  before 'deploy',            'campfire:save_previous_current_revision'
-  before 'deploy:migrations', 'campfire:save_previous_current_revision'
-  before 'deploy:rollback',   'campfire:save_previous_current_revision'
+  before 'deploy:symlink',           'campfire:save_previous_current_revision'
+  before 'deploy:rollback:revision', 'campfire:save_previous_current_revision'
   
   def register(domain, token, config = {})
     begin
