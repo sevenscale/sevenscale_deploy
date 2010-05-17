@@ -110,6 +110,7 @@ namespace :users do
     auths_by_server
   end
 
+  desc "Ensure all systems can fully authenticate"
   task :authenticate do
     brute_force_authenticate.each do |(user, password), servers|
       begin
