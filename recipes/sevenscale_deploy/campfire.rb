@@ -52,6 +52,6 @@ namespace :campfire do
   end
   
   task :save_previous_current_revision do
-    set(:previous_current_revision, capture("cat #{current_path}/REVISION").chomp)
+    set(:previous_current_revision, (capture("cat #{current_path}/REVISION").chomp rescue nil))
   end
 end
