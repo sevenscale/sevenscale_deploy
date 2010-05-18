@@ -7,7 +7,7 @@ namespace :rpms do
     desc 'Install required RPMs for all roles'
     task :default do
       parallel do |session|
-        @@rpms.except(:all).keys.each do |role|
+        rpms.real_roles.each do |role|
           session.when "in?(:#{role.to_s})", yum_command_for(role)
         end
         session.else yum_command_for(:all)
@@ -34,6 +34,10 @@ namespace :rpms do
         end
       end
     end
+  end
+
+  def real_roles
+    @@rpms.keys - [ :all ]
   end
 
   def yum_command_for(role)
