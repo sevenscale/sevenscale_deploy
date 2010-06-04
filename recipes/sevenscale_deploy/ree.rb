@@ -21,20 +21,22 @@ namespace :ree do
       cmds << %{#{sudo} /bin/sh -c "yum erase -y ruby ; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
     end
 
-    # Create the directories we need
-    cmds << "mkdir -p #{shared_path}/opt/src #{shared_path}/opt/dist #{shared_path}/opt/bin"
+    src_root = "/tmp/cap-ree-#{$$}"
 
-    # Download the file
-    cmds << "curl -L -s -S -o #{shared_path}/opt/dist/#{filename} #{url}"
+    # Create the directories we need
+    cmds << "mkdir -p #{src_root}"
 
     # Cleanup if we've done another run before
-    cmds << "#{sudo} rm -rf #{shared_path}/opt/src/#{expanded_directory}"
+    cmds << "#{sudo} rm -rf #{src_root}/#{expanded_directory} #{src_root}/#{filename}"
+
+    # Download the file
+    cmds << "curl -L -s -S -o #{src_root}/#{filename} #{url}"
 
     # Extract the data
-    cmds << "tar zxvf #{shared_path}/opt/dist/#{filename} -C #{shared_path}/opt/src"
+    cmds << "tar zxvf #{src_root}/#{filename} -C #{src_root}"
 
     # Run the installer
-    cmds << "cd #{shared_path}/opt/src/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems"
+    cmds << "cd #{src_root}/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems && rm -rf #{src_root}"
 
     hosts_in_need = ree.find_hosts_in_need('ruby -v') { |out| out.match(version_matcher) }
 
