@@ -91,13 +91,24 @@ namespace :iptables do
   end
 
   def enable_commands(chain, port, protocol, options = {})
+    servers = []
     if from_roles = (options[:from_role] || options[:from_roles])
-      servers = find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
-        [ server.host, alternate_hostnames[server.host] ].flatten.uniq.each do |host|
-          IPSocket.getaddress(host)
+      servers += find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
+        [ server.host, alternate_hostnames[server.host] ].flatten.uniq.collect do |host|
+          [ host, IPSocket.getaddress(host) ]
         end
       end
+    end
 
+    if from_hosts = (options[:from_host] || options[:from_hosts])
+      servers += Array(from_hosts).collect do |host|
+        [ host, alternate_hostnames[host] ].flatten.uniq.collect do |host|
+          [ host, IPSocket.getaddress(host) ]
+        end
+      end
+    end
+
+    if servers.length > 0
       servers.flatten.uniq.collect do |ip_address|
         %{/sbin/iptables -A #{chain} -p #{protocol} -m #{protocol} -s #{ip_address} --dport #{port} -j ACCEPT}
       end
