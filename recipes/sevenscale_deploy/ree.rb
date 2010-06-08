@@ -1,3 +1,5 @@
+require 'set'
+
 namespace :ree do
   # Make sure the required RPMs are installed
   # rpmist.all %w(openssl-devel readline-devel)
@@ -10,16 +12,15 @@ namespace :ree do
     ree.install_ruby(url, version_matcher)
   end
 
+  # There's a major assumption here that all systems are of the same Linux Distribution
   def install_ruby(url, version_matcher, options = {})
     filename           = File.basename(url)
     expanded_directory = filename[/^(.+)\.tar/, 1]
 
     cmds = []
 
-    unless options[:yum] == false
-      # Remove ruby RPM and install required RPMs
-      cmds << %{#{sudo} /bin/sh -c "yum erase -y ruby ; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
-    end
+    # Remove ruby package and install required packages
+    cmds << command_for_packages
 
     src_root = "/tmp/cap-ree-#{$$}"
 
@@ -36,11 +37,28 @@ namespace :ree do
     cmds << "tar zxvf #{src_root}/#{filename} -C #{src_root}"
 
     # Run the installer
-    cmds << "cd #{src_root}/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems && rm -rf #{src_root}"
+    cmds << "cd #{src_root}/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems && #{sudo} rm -rf #{src_root}"
 
     hosts_in_need = ree.find_hosts_in_need('ruby -v') { |out| out.match(version_matcher) }
 
-    run cmds.join(' && '), :hosts => hosts_in_need
+    unless hosts_in_need.empty?
+      run cmds.join(' && '), :hosts => hosts_in_need
+    end
+  end
+
+  def fetch_os_distribution
+    capture("lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp
+  end
+
+  def command_for_packages
+    case distribution = fetch_os_distribution
+    when 'Fedora'
+      %{#{sudo} /bin/sh -c "yum erase -y ruby ; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
+    when 'Ubuntu'
+      %{#{sudo} /bin/sh -c "apt-get remove -q -y '^.*ruby.*' ; apt-get install -q -y build-essential patch zlib1g-dev libssl-dev libreadline5-dev"}
+    else
+      raise "Unknown distribution: #{distribution.inspect}"
+    end
   end
 
   def find_hosts_in_need(command, &block)
