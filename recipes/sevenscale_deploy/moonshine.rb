@@ -12,9 +12,7 @@ namespace :moonshine do
 
   desc 'Install required gems'
   task :install_required_gems do
-    sudo 'gem install rake --no-rdoc --no-ri'
-    sudo 'gem install puppet -v 0.24.8 --no-rdoc --no-ri'
-    sudo 'gem install shadow_puppet --no-rdoc --no-ri'
+    sudo 'gem install rake shadow_puppet --no-rdoc --no-ri'
   end
 
   desc <<-DESC
@@ -44,7 +42,9 @@ namespace :moonshine do
   end
 
   def fetch_os_distribution
-    capture("lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp
+    fetch :os_distribution, lambda {
+      capture("/usr/bin/lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp
+    }
   end
 
   def install_git_package
