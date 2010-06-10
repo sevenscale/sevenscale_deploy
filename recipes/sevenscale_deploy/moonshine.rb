@@ -1,7 +1,7 @@
 namespace :moonshine do
-  after 'deploy:finalize_update' do
-    apply if fetch(:moonshine_apply, true)
-  end
+  # after 'deploy:finalize_update' do
+  #   apply if fetch(:moonshine_apply, true)
+  # end
 
   desc 'Setup moonshine'
   task :setup do
