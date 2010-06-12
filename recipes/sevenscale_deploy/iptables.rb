@@ -95,7 +95,7 @@ namespace :iptables do
     if from_roles = (options[:from_role] || options[:from_roles])
       servers += find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
         [ server.host, alternate_hostnames[server.host] ].flatten.uniq.collect do |host|
-          [ host, IPSocket.getaddress(host) ]
+          IPSocket.getaddress(host)
         end
       end
     end
@@ -103,7 +103,7 @@ namespace :iptables do
     if from_hosts = (options[:from_host] || options[:from_hosts])
       servers += Array(from_hosts).collect do |host|
         [ host, alternate_hostnames[host] ].flatten.uniq.collect do |host|
-          [ host, IPSocket.getaddress(host) ]
+          IPSocket.getaddress(host)
         end
       end
     end
