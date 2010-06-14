@@ -13,6 +13,7 @@ namespace :moonshine do
 
   desc 'Install required gems'
   task :ensure_installed do
+    commands = [
       "system(*%w(gem install shadow_puppet --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
       "system(*%w(gem install rake --no-rdoc --no-ri)) unless Gem.available?(%(rake))"
       ]
