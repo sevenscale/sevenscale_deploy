@@ -2,17 +2,22 @@ namespace :moonshine do
   # after 'deploy:finalize_update' do
   #   apply if fetch(:moonshine_apply, true)
   # end
+  before 'moonshine:apply', 'moonshine:ensure_installed'
 
   desc 'Setup moonshine'
   task :setup do
-    install_required_gems
+    ensure_installed
     install_git
     setup_directories
   end
 
   desc 'Install required gems'
-  task :install_required_gems do
-    sudo 'gem install rake shadow_puppet --no-rdoc --no-ri'
+  task :ensure_installed do
+      "system(*%w(gem install shadow_puppet --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
+      "system(*%w(gem install rake --no-rdoc --no-ri)) unless Gem.available?(%(rake))"
+      ]
+
+    sudo(%(/bin/sh -c "ruby -rubygems -e '#{commands.join("; ")}'"), :shell => false)
   end
 
   desc <<-DESC
