@@ -1,7 +1,13 @@
 namespace :web do
+  desc 'Enable web site'
+  task :enable, :roles => :app, :except => { :no_release => true } do
+    run "rm #{current}/public/system/maintenance.html"
+  end
+  
+  desc 'Disable web site'
   task :disable, :roles => :app, :except => { :no_release => true } do
     require 'erb'
-    on_rollback { run "rm #{shared_path}/system/maintenance.html" }
+    on_rollback { run "rm #{current}/public/system/maintenance.html" }
 
     reason = ENV['REASON']
     deadline = ENV['UNTIL']
