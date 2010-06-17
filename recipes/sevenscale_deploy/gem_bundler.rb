@@ -59,7 +59,7 @@ module GemBundler
       after_hook = if options[:hook].is_a?(String)
         options[:hook]
       else
-        'deploy:finalize_update'
+        'deploy:update_code'
       end
 
       # Make sure the gem bundler is installed
