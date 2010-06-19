@@ -1,7 +1,9 @@
 ::Capistrano::Command.class_eval do
   def replace_placeholders(command, channel)
-    command.gsub(/\$CAPISTRANO:HOST\$/, channel[:host])
-    command.gsub(/\$CAPISTRANO:ROLES\$/, channel[:server].roles.join(','))
+    command = command.dup
+    command.gsub!(/\$CAPISTRANO:HOST\$/, channel[:host])
+    command.gsub!(/\$CAPISTRANO:ROLES\$/, channel[:server].roles.join(','))
+    command
   end
 end
 
