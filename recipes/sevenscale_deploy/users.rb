@@ -21,13 +21,17 @@ namespace :users do
   namespace :create do
     desc 'Create all users'
     task :default do
-      tasks.each do |name, task|
-        execute_task(task) unless task == default_task
+      @users.each do |name|
+        execute_task(tasks[name])
       end
     end
   end
 
   def activate(user, options = {})
+    @users ||= []
+
+    @users << user
+
     namespace :create do
       desc "Create user #{user}#{' with all user keys' if options[:all_keys]}"
       task user do
@@ -48,6 +52,10 @@ namespace :users do
 
     if options[:password]
       command_options << %{ --password '#{options[:password]}'}
+    end
+
+    if options[:uid]
+      command_options << %{ -u #{options[:uid]}}
     end
 
     invoke_command %{/bin/sh -c "#{command}"}, :via => via
