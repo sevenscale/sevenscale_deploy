@@ -21,16 +21,14 @@ namespace :users do
   namespace :create do
     desc 'Create all users'
     task :default do
-      @users.each do |name|
+      Array(@users).each do |name|
         execute_task(tasks[name])
       end
     end
   end
 
   def activate(user, options = {})
-    @users ||= []
-
-    @users << user
+    (@users ||= []) << user
 
     namespace :create do
       desc "Create user #{user}#{' with all user keys' if options[:all_keys]}"

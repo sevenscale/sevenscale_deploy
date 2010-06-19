@@ -47,9 +47,7 @@ namespace :ree do
   end
 
   def fetch_os_distribution
-    fetch :os_distribution, lambda {
-      capture("/usr/bin/lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp
-    }
+    fetch(:os_distribution) { capture("/usr/bin/lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp }
   end
 
   def command_for_packages
