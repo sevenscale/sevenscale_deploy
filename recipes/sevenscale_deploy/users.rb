@@ -19,18 +19,22 @@
 
 namespace :users do
   namespace :create do
+    def users_to_activate
+      @users_to_activate ||= []
+    end
+
     desc 'Create all users'
     task :default do
-      Array(@users).each do |name|
-        execute_task(tasks[name])
+      users_to_activate.each do |name|
+        execute_task(tasks[name.to_sym])
       end
     end
   end
 
   def activate(user, options = {})
-    (@users ||= []) << user
-
     namespace :create do
+      users_to_activate << user
+
       desc "Create user #{user}#{' with all user keys' if options[:all_keys]}"
       task user do
         create_user(user, options)
@@ -42,24 +46,29 @@ namespace :users do
     via = fetch(:user) == 'root' ? :run : :sudo
 
     command = "grep -q '^#{user}:' /etc/passwd || /usr/sbin/useradd #{user}"
-    command_options = ''
-
-    if options[:groups]
-      command_options << " -G #{Array(options[:groups]).join(',')}"
-    end
-
-    if options[:password]
-      command_options << %{ --password '#{options[:password]}'}
-    end
 
     if options[:uid]
-      command_options << %{ -u #{options[:uid]}}
+      command << " -u #{options[:uid]}"
     end
 
     invoke_command %{/bin/sh -c "#{command}"}, :via => via
 
-    unless command_options.empty?
-      invoke_command %{/usr/sbin/usermod #{command_options} #{user}}, :via => via
+    usermod_options = ''
+
+    if options[:groups]
+      usermod_options << " -G #{Array(options[:groups]).join(',')}"
+    end
+
+    if options[:password]
+      usermod_options << %{ --password '#{options[:password]}'}
+    end
+
+    if options[:uid]
+      usermod_options << %{ -u #{options[:uid]}}
+    end
+
+    unless usermod_options.empty?
+      invoke_command %{/usr/sbin/usermod #{usermod_options} #{user}}, :via => via
     end
 
     update_authorized_keys2(user, options[:all_keys])
