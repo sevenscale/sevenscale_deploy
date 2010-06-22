@@ -24,7 +24,8 @@ namespace :capistrano do
       config_hash['roles'][role_name] = servers.collect { |s| s.host }
 
       servers.each do |server|
-        config_hash['options'][server.host] = server.options
+        config_hash['options'][server.host] ||= {}
+        config_hash['options'][server.host].merge!(server.options)
       end
     end
 
