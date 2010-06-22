@@ -11,7 +11,7 @@ namespace :capistrano do
     end
 
     put YAML::dump(config_hash), "#{shared_path}/config/capistrano_roles.yml"
-    run "ln -s #{shared_path}/config/capistrano_roles.yml #{release_path}/config/capistrano_roles.yml"
+    run "ln -nsf #{shared_path}/config/capistrano_roles.yml #{release_path}/config/capistrano_roles.yml"
   end
 
   desc 'Write servers config file'
@@ -30,6 +30,6 @@ namespace :capistrano do
     end
 
     put YAML::dump(config_hash), "#{shared_path}/config/capistrano_servers.yml"
-    run "ln -s #{shared_path}/config/capistrano_servers.yml #{release_path}/config/capistrano_servers.yml"
+    run "ln -nsf #{shared_path}/config/capistrano_servers.yml #{release_path}/config/capistrano_servers.yml"
   end
 end
