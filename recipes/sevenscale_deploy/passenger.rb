@@ -30,13 +30,16 @@ namespace :passenger do
   task :update_config, :only => { :passenger => true } do
     httpd_conf_dir = fetch(:httpd_conf_dir, '/etc/httpd/conf.d')
 
-    passenger_root = fetch(:passenger_root) { capture("passenger-config --root").chomp }
-    ruby_path      = fetch(:ruby)           { capture("/usr/bin/which ruby").chomp }
+    passenger_root          = fetch(:passenger_root) { capture("passenger-config --root").chomp }
+    ruby_path               = fetch(:ruby)           { capture("/usr/bin/which ruby").chomp }
+    passenger_max_pool_size = fetch(:passenger_max_pool_size, 6)
 
     passenger_config =<<-EOF
       LoadModule passenger_module #{passenger_root}/ext/apache2/mod_passenger.so
       PassengerRoot #{passenger_root}
       PassengerRuby #{ruby_path}
+
+      PassengerMaxPoolSize #{passenger_max_pool_size}
     EOF
 
     passenger_config_file = "/tmp/.passenger.conf.#{$$}"
