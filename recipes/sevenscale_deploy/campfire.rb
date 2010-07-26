@@ -28,9 +28,8 @@ namespace :campfire do
 
       desc "Notify #{short_domain} of deploy"
       task :notify do
-        campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl])
-        campfire.login(token, 'x')
-        room = campfire.find_room_by_name(config[:room]) rescue nil
+        campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl], :token => token)
+        room     = campfire.find_room_by_name(config[:room]) rescue nil
         
         if room
           logger.debug "sending message to #{config[:room]} on #{short_domain} Campfire"
