@@ -8,8 +8,8 @@
 namespace :campfire do
   set(:previous_current_revision) { raise "Previous current revision was never fetched" }
   
-  before 'deploy:symlink',           'campfire:save_previous_current_revision'
-  before 'deploy:rollback:revision', 'campfire:save_previous_current_revision'
+  # before 'deploy',                   'campfire:save_previous_current_revision'
+  # before 'deploy:rollback:revision', 'campfire:save_previous_current_revision'
   
   def register(domain, token, config = {})
     begin
@@ -22,29 +22,51 @@ namespace :campfire do
     short_domain = domain[/^([^\.]+)/, 1]
 
     namespace short_domain do
-      after 'deploy',            "campfire:#{short_domain}:notify"
-      after 'deploy:migrations', "campfire:#{short_domain}:notify"
-      after 'deploy:rollback',   "campfire:#{short_domain}:notify"
+      before 'deploy',            "campfire:#{short_domain}:notify_start"
+      before 'deploy:migrations', "campfire:#{short_domain}:notify_start"
+      after  'deploy',            "campfire:#{short_domain}:notify_finished"
+      after  'deploy:migrations', "campfire:#{short_domain}:notify_finished"
 
-      desc "Notify #{short_domain} of deploy"
-      task :notify do
+      task :notify_start do
+        campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl], :token => token)
+        room     = campfire.find_room_by_name(config[:room]) rescue nil
+
+        if room
+          deployer    = ENV['USER']
+          deployed    = current_revision.to_s[0..7]
+          deploying   = real_revision.to_s[0..7]
+          github_repo = repository[/github.com:(.*)\.git$/, 1]
+          compare_url = "http://github.com/#{github_repo}/compare/#{deployed}...#{deploying}"
+
+          message = "[CAP] %s is deploying (%s..%s) of %s" % [
+            ENV['USER'], deployed, deploying, fetch(:application),
+          ]
+          if stage = fetch(:rails_env, nil)
+            message << " to #{stage}"
+          end
+
+          message << " with `cap #{ARGV.join(' ')}` (#{compare_url})"
+          room.speak message
+        end
+      end
+
+      task :notify_finished do
         campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl], :token => token)
         room     = campfire.find_room_by_name(config[:room]) rescue nil
         
         if room
           logger.debug "sending message to #{config[:room]} on #{short_domain} Campfire"
 
-          message = "[CAP] %s just deployed revision %s of %s" % [
-            ENV['USER'], current_revision.to_s[0..5], fetch(:application), 
+          message = "[CAP] %s's deploy of %s" % [
+            ENV['USER'], fetch(:application),
           ]
           if stage = fetch(:rails_env, nil)
             message << " to #{stage}"
           end
-          room.speak "#{message}."
-          changes = `#{source.local.log(previous_current_revision, current_revision)}`.chomp
-          room.paste changes unless changes.blank?
-        else
-          logger.debug "Campfire #{short_domain} room '#{config[:room]}' not found"
+
+          message << " is done."
+
+          room.speak message
         end
       end
     end
