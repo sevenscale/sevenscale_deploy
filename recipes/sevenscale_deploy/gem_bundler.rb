@@ -22,7 +22,7 @@ module GemBundler
 
           withouts = Array(options[:without]).map { |w| "--without #{w}"}.join(' ')
 
-          run "cd #{bundle_root} && ( bundle check || bundle install #{withouts} #{shared_root_dir} )"
+          run "cd #{bundle_root} && bundle install #{withouts} #{shared_root_dir}"
         end
       end
     end
