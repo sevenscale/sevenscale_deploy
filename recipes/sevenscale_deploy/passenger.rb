@@ -61,13 +61,15 @@ namespace :passenger do
     configuration[:passenger] = {}
     configuration[:passenger][:rails_env] = fetch(:rails_env, "production")
 
-    apache_ssl_certificate_file     = fetch(:apache_ssl_certificate_file, nil)
-    apache_ssl_certificate_key_file = fetch(:apache_ssl_certificate_key_file, nil)
+    apache_ssl_certificate_file       = fetch(:apache_ssl_certificate_file, nil)
+    apache_ssl_certificate_key_file   = fetch(:apache_ssl_certificate_key_file, nil)
+    apache_ssl_certificate_chain_file = fetch(:apache_ssl_certificate_chain_file, nil)
 
     if apache_ssl_certificate_file && apache_ssl_certificate_key_file
       configuration[:ssl] = {}
-      configuration[:ssl][:certificate_file]     = apache_ssl_certificate_file
-      configuration[:ssl][:certificate_key_file] = apache_ssl_certificate_key_file
+      configuration[:ssl][:certificate_file]       = apache_ssl_certificate_file
+      configuration[:ssl][:certificate_key_file]   = apache_ssl_certificate_key_file
+      configuration[:ssl][:certificate_chain_file] = apache_ssl_certificate_chain_file
     end
 
     configuration[:apache] = {}
