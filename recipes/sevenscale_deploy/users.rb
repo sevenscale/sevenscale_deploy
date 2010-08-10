@@ -148,7 +148,7 @@ namespace :users do
   end
 
   def can_authenticate?(server, user, password)
-    via = fetch(:run_method, :sudo)
+    via = user == 'root' ? :run : :sudo
     old_user, old_password = fetch(:user), fetch(:password)
 
     set(:user, user);
