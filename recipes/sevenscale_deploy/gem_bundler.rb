@@ -63,7 +63,9 @@ module GemBundler
       end
 
       # Make sure the gem bundler is installed
-      after after_hook, 'bundler:install'
+      unless options[:skip_bundler_gem_install]
+        after after_hook, 'bundler:install'
+      end
 
       # Run the gem bundler for us
       after after_hook, our_hook_name

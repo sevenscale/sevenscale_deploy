@@ -11,7 +11,14 @@ namespace :db do
     db_pool     = fetch(:db_pool, 5)
     rails_env   = fetch(:rails_env, 'production')
 
-    primary_db_host = find_servers(:roles => :db, :only => { :primary => true }, :skip_hostfilter => true).first.host
+    begin
+      primary_db_host = find_servers(:roles => :db, :only => { :primary => true }, :skip_hostfilter => true).first.host
+    rescue ArgumentError
+      logger.info "*** Skipping db:create_config -- we don't have any :db hosts"
+      # If we don't have any :db's, let's just not
+      next
+    end
+
     all_db_hosts    = find_servers(:roles => :db, :skip_hostfilter => true).collect { |s| s.host }.uniq
 
     database_yml = {}
