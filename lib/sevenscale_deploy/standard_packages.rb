@@ -64,6 +64,13 @@ module SevenScaleDeploy
       service 'rpcbind', :ensure => :running, :enable => true, :require => package('rpcbind')
     end
 
+    def nokogiri_gem_dependencies(options = {})
+      package 'libxml2',       options.reverse_merge(:ensure => :installed)
+      package 'libxml2-devel', options.reverse_merge(:ensure => :installed)
+      package 'libxslt',       options.reverse_merge(:ensure => :installed)
+      package 'libxslt-devel', options.reverse_merge(:ensure => :installed)
+    end
+
     def typhoeus_gem_dependencies(options = {})
       case Facter.operatingsystem
       when 'RedHat', 'CentOS'
