@@ -1,6 +1,4 @@
 namespace :dir do
-  after 'deploy:setup', 'dir:permissions'
-
   desc "Setup directories"
   task :permissions do
     deploy_user = fetch(:user)
