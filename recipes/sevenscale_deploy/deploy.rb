@@ -15,9 +15,9 @@ namespace :deploy do
     dirs = [deploy_to, releases_path, shared_path]
     dirs += shared_children.map { |d| File.join(shared_path, d) }
     
-    commands = "mkdir -p #{dirs.join(' ')} && chmod g+w #{dirs.join(' ')} && chown -R #{user}.#{user} #{dirs.join(' ')}"
+    commands = "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')} && #{try_sudo} chown -R #{fetch(:user)}.#{fetch(:user)} #{dirs.join(' ')}"
     
-    brute_force_authenticate.each do |(user, password), servers|
+    users.brute_force_authenticate.each do |(user, password), servers|
       begin
         old_user, old_password = fetch(:user), fetch(:password)
 
@@ -27,7 +27,7 @@ namespace :deploy do
         hosts = servers.map { |s| s.host }
 
         with_env('HOSTFILTER', hosts.join(',')) do
-          sudo commands
+          run commands
         end
       ensure
         set(:user, old_user)
