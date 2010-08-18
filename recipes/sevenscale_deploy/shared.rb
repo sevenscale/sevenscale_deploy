@@ -42,14 +42,28 @@ namespace :shared do
     files.each { |file| top.upload(file, File.join(shared_path, file)) }
   end
 
-  def upload_file(filename, contents)
+  def upload_file(filename, contents = nil, &block)
+    contents ||= block
+
     @shared_files_to_upload ||= []
     @shared_files_to_upload << [ filename, contents ]
 
     desc 'Upload generated files to shared directory'
     task :upload_files, :except => { :no_release => true } do
+      directories = @shared_files_to_upload.collect do |(filename, _)|
+        File.dirname(filename)
+      end.reject do |d|
+        d == '.'
+      end.collect do |d|
+        File.join(shared_path, d)
+      end.uniq
+
+      run "mkdir -p #{directories.join(' ')}"
+
       @shared_files_to_upload.each do |(filename, contents)|
-        put contents, filename, :mode => 0664
+        contents = contents.respond_to?(:call) ? contents.call : contents
+
+        put contents, File.join(shared_path, filename), :mode => 0664
       end
     end
 
