@@ -18,20 +18,12 @@ namespace :deploy do
     commands = "#{try_sudo} mkdir -p #{dirs.join(' ')} && #{try_sudo} chmod g+w #{dirs.join(' ')} && #{try_sudo} chown -R #{fetch(:user)}.#{fetch(:user)} #{dirs.join(' ')}"
     
     users.brute_force_authenticate.each do |(user, password), servers|
-      begin
-        old_user, old_password = fetch(:user), fetch(:password)
-
-        set(:user, user)
-        set(:password, password)
-
+      users.connect_as(user, password) do
         hosts = servers.map { |s| s.host }
 
         with_env('HOSTFILTER', hosts.join(',')) do
           run commands
         end
-      ensure
-        set(:user, old_user)
-        set(:password, old_password)
       end
     end
   end
