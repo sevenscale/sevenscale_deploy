@@ -125,55 +125,56 @@ namespace :users do
     auths_by_server
   end
 
-  desc "Ensure all systems can fully authenticate"
-  task :authenticate do
-    brute_force_authenticate.each do |(user, password), servers|
-      begin
-        old_user, old_password = fetch(:user), fetch(:password)
+  def connect_as(user, password, &block)
+    begin
+      old_user, old_password = fetch(:user), fetch(:password)
 
+      if user != old_user
         set(:user, user)
         set(:password, password)
 
+        logger.info "Running following commands as '#{user}'"
+        teardown_connections_to(sessions.keys)
+      end
+
+      return block.call
+    ensure
+      if user != old_user
+        set(:user, old_user)
+        set(:password, old_password)
+
+        logger.info "Switching back to '#{old_user}'"
+        teardown_connections_to(sessions.keys)
+      end
+    end
+  end
+
+  desc "Ensure all systems can fully authenticate"
+  task :authenticate do
+    brute_force_authenticate.each do |(user, password), servers|
+      users.connect_as(user, password) do
         hosts = servers.map { |s| s.host }
 
         with_env('HOSTFILTER', hosts.join(',')) do
           users.create.default
           sudoers.apply.default
         end
-      ensure
-        set(:user, old_user)
-        set(:password, old_password)
       end
     end
   end
 
   def can_authenticate?(server, user, password)
     via = user == 'root' ? :run : :sudo
-    old_user, old_password = fetch(:user), fetch(:password)
-
-    set(:user, user);
-    set(:password, password)
-
-    invoke_command('/usr/bin/id', :via => via, :hosts => server)
-    return true
-  rescue Capistrano::ConnectionError, Capistrano::CommandError
-    return false
-  ensure
-    set(:user, old_user)
-    set(:password, old_password)
+    begin
+      invoke_command('/usr/bin/id', :via => via, :hosts => server)
+      return true
+    rescue Capistrano::ConnectionError, Capistrano::CommandError
+      return false
+    end
   end
 
-  def connect_as_root
-    normal_user = fetch(:user)
-    normal_password = fetch(:password)
-
+  def connect_as_root(&block)
     logger.info "Command must run as root. Please specify root password."
-    set(:user, 'root')
-    set(:password, Capistrano::CLI.password_prompt)
-
-    yield
-  ensure
-    set(:user, normal_user)
-    set(:password, normal_password)
+    users.connect_as('root', Capistrano::CLI.password_prompt, &block)
   end
 end

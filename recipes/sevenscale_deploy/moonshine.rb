@@ -18,7 +18,9 @@ namespace :moonshine do
       "system(*%w(gem install rake --no-rdoc --no-ri)) unless Gem.available?(%(rake))"
       ]
 
-    sudo(%(/bin/sh -c "ruby -rubygems -e '#{commands.join("; ")}'"), :shell => false)
+    users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+      sudo(%(/bin/sh -c "ruby -rubygems -e '#{commands.join("; ")}'"), :shell => false)
+    end
   end
 
   desc <<-DESC
@@ -32,14 +34,18 @@ namespace :moonshine do
     upload moonshine_yml_path.to_s,       '/tmp/moonshine.yml'
     upload moonshine_setup_manifest_path, '/tmp/moonshine_setup_manifest.rb'
 
-    sudo 'shadow_puppet /tmp/moonshine_setup_manifest.rb; rm /tmp/moonshine_setup_manifest.rb /tmp/moonshine.yml'
+    users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+      sudo 'shadow_puppet /tmp/moonshine_setup_manifest.rb; rm /tmp/moonshine_setup_manifest.rb /tmp/moonshine.yml'
+    end
   end
 
   desc 'Apply the Moonshine manifest for this application'
   task :apply, :except => { :no_release => true } do
     moonshine_manifest = fetch(:moonshine_manifest, 'application_manifest')
 
-    sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
+    users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+      sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
+    end
   end
 
   desc 'Install git'
