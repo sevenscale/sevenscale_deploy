@@ -126,26 +126,25 @@ namespace :users do
   end
 
   def connect_as(user, password, &block)
-    begin
-      old_user, old_password = fetch(:user), fetch(:password)
+    old_user, old_password = fetch(:user), fetch(:password)
 
-      if user != old_user
-        set(:user, user)
-        set(:password, password)
+    if user != old_user
+      changed_user = true
+      set(:user, user)
+      set(:password, password)
 
-        logger.info "Running following commands as '#{user}'"
-        teardown_connections_to(sessions.keys)
-      end
+      logger.info "Running following commands as '#{user}'"
+      teardown_connections_to(sessions.keys)
+    end
 
-      return block.call
-    ensure
-      if user != old_user
-        set(:user, old_user)
-        set(:password, old_password)
+    return block.call
+  ensure
+    if changed_user
+      set(:user, old_user)
+      set(:password, old_password)
 
-        logger.info "Switching back to '#{old_user}'"
-        teardown_connections_to(sessions.keys)
-      end
+      logger.info "Switching back to '#{old_user}'"
+      teardown_connections_to(sessions.keys)
     end
   end
 
@@ -165,11 +164,13 @@ namespace :users do
 
   def can_authenticate?(server, user, password)
     via = user == 'root' ? :run : :sudo
-    begin
-      invoke_command('/usr/bin/id', :via => via, :hosts => server)
-      return true
-    rescue Capistrano::ConnectionError, Capistrano::CommandError
-      return false
+    users.connect_as(user, password) do
+      begin
+        invoke_command('/usr/bin/id', :via => via, :hosts => server)
+        return true
+      rescue Capistrano::ConnectionError, Capistrano::CommandError
+        return false
+      end
     end
   end
 
