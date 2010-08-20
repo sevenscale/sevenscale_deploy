@@ -50,6 +50,10 @@ namespace :users do
     if options[:uid]
       command << " -u #{options[:uid]}"
     end
+    
+    if options[:options]
+      command << " #{options[:options]}"
+    end
 
     invoke_command %{/bin/sh -c "#{command}"}, :via => via
 
@@ -66,6 +70,7 @@ namespace :users do
     if options[:uid]
       usermod_options << %{ -u #{options[:uid]}}
     end
+    
 
     unless usermod_options.empty?
       invoke_command %{/usr/sbin/usermod #{usermod_options} #{user}}, :via => via
