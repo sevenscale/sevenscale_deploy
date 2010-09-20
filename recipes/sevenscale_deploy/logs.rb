@@ -13,4 +13,19 @@ namespace :logs do
       exit(0)
     end
   end
+
+  desc "grep log files"
+  task :grep do
+    log_filename = fetch(:log_filename, "#{rails_env}.log")
+
+    abort "Must provide PATTERN=" unless ENV['PATTERN']
+
+    command = "grep "
+
+    if ENV['CONTEXT']
+      command << %{-C "#{ENV['CONTEXT']}"}
+    end
+
+    run %{#{command} -e "#{ENV['PATTERN']}" #{shared_path}/log/#{log_filename}}
+  end
 end
