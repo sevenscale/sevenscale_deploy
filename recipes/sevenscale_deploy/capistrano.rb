@@ -25,10 +25,22 @@ namespace :capistrano do
   desc 'Write capistano configuration settings'
   task :write_capistrano_variables do
     config_hash = {}
+
+    basic_types = lambda do |v|
+      case v
+      when String, Numeric, Symbol, true, false
+        true
+      when Array
+        v.all? { |vv| basic_types.call(vv) }
+      else
+        false
+      end
+    end
+
     variables.each do |key, value|
       # Don't assign variables that are procs -- they haven't been turned 
       # into real values yet
-      config_hash[key] = value unless value.respond_to?(:call)
+      config_hash[key] = value if basic_types.call(value)
     end
 
     config_hash['roles'] = {}
