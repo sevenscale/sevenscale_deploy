@@ -25,8 +25,10 @@ namespace :capistrano do
   desc 'Write capistano configuration settings'
   task :write_capistrano_variables do
     config_hash = {}
-    variables.keys.each do |key|
-      config_hash[key] = fetch(key)
+    variables.each do |key, value|
+      # Don't assign variables that are procs -- they haven't been turned 
+      # into real values yet
+      config_hash[key] = value unless value.respond_to?(:call)
     end
 
     config_hash['roles'] = {}
