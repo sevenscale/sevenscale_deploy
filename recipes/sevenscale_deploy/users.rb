@@ -85,15 +85,17 @@ namespace :users do
     key_files = all_keys ? Dir["ssh_keys/*/*"] : Dir["ssh_keys/#{user}/*"]
     user_keys = key_files.collect { |file| [ "# #{file}:"] + File.read(file).split(/(\r?\n)+/) }.flatten
 
-    authorized_keys_file = "/tmp/#{user}-authorized_keys2.#{$$}"
+    unless user_keys.empty?
+      authorized_keys_file = "/tmp/#{user}-authorized_keys2.#{$$}"
 
-    put user_keys.join("\n"), authorized_keys_file, :mode => 0600
+      put user_keys.join("\n"), authorized_keys_file, :mode => 0600
 
-    commands = "/usr/bin/install -D -b -m 0600 -o #{user} -g #{user} #{authorized_keys_file} ~#{user}/.ssh/authorized_keys2"
-    commands << " && chown -R #{user}.#{user} ~#{user}/.ssh"
-    commands << " && chmod 0700 ~#{user}/.ssh; rm -f #{authorized_keys_file}"
+      commands = "/usr/bin/install -D -b -m 0600 -o #{user} -g #{user} #{authorized_keys_file} ~#{user}/.ssh/authorized_keys2"
+      commands << " && chown -R #{user}.#{user} ~#{user}/.ssh"
+      commands << " && chmod 0700 ~#{user}/.ssh; rm -f #{authorized_keys_file}"
 
-    invoke_command %{/bin/sh -c "#{commands}"}, :via => via
+      invoke_command %{/bin/sh -c "#{commands}"}, :via => via
+    end
   end
 
   def brute_force_authenticate
