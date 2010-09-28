@@ -7,7 +7,11 @@ namespace :logs do
 
     begin
       run "tail -f #{shared_path}/log/#{log_filename}" do |ch, stream, out|
-        print out
+        if ENV['WITH_HOSTNAME']
+          print "  [#{ch[:host]}] " + out.chomp.gsub(/\n/, "\n  [#{ch[:host]}] ") + "\n"
+        else
+          print out
+        end
       end
     rescue Interrupt
       exit(0)
