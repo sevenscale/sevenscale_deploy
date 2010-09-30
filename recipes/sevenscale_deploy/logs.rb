@@ -4,9 +4,10 @@ namespace :logs do
   desc "tail log files"
   task :tail do
     log_filename = fetch(:log_filename, "#{rails_env}.log")
+    logs = Array(log_filename).collect { |l| "#{shared_path}/log/#{l}" }
 
     begin
-      run "tail -f #{shared_path}/log/#{log_filename}" do |ch, stream, out|
+      run "tail -f #{logs.join(' ')}" do |ch, stream, out|
         if ENV['WITH_HOSTNAME']
           print "  [#{ch[:host]}] " + out.chomp.gsub(/\n/, "\n  [#{ch[:host]}] ") + "\n"
         else
@@ -21,6 +22,7 @@ namespace :logs do
   desc "grep log files"
   task :grep do
     log_filename = fetch(:log_filename, "#{rails_env}.log")
+    logs = Array(log_filename).collect { |l| "#{shared_path}/log/#{l}" }
 
     abort "Must provide PATTERN=" unless ENV['PATTERN']
 
@@ -30,6 +32,6 @@ namespace :logs do
       command << %{-C "#{ENV['CONTEXT']}"}
     end
 
-    run %{#{command} -e "#{ENV['PATTERN']}" #{shared_path}/log/#{log_filename}}
+    run %{#{command} -e "#{ENV['PATTERN']}" #{logs.join(' ')}}
   end
 end
