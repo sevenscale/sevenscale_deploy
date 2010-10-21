@@ -18,11 +18,11 @@ module GemBundler
         desc "Run bundler on a new release"
         task :bundle, :roles => options[:roles] do
           bundle_root     = File.join(release_path, bundle_root_subdir.to_s)
-          shared_root_dir = File.join(shared_path, 'bundler')
+          shared_root_dir = File.join(shared_path, 'bundle')
 
           withouts = Array(options[:without]).map { |w| "--without #{w}"}.join(' ')
 
-          run "cd #{bundle_root} && bundle install #{withouts} #{shared_root_dir}"
+          run "cd #{bundle_root} && bundle install #{withouts} --deployment --quiet --path #{shared_root_dir}"
         end
       end
     end
@@ -36,7 +36,7 @@ module GemBundler
     namespace :bundler do
       desc 'Install correct version of gem bundler'
       task :install do
-        minimum_version          = '0.9.26'
+        minimum_version          = '1.0.3'
         minumim_rubygems_version = '1.3.6'
 
         commands = [
