@@ -3,9 +3,9 @@ module SevenScaleDeploy
     def bundler_dependencies(options = {})
       root = options.delete(:root)
 
-      # WARNING: This is highly Bundler 0.9 -specific
-      YAML::load_file(File.join(root, 'Gemfile.lock'))['specs'].each do |spec|
-        gem_name = spec.keys.first
+      require 'bundler'
+      Bundler::LockfileParser.new(File.read(File.join(root, 'Gemfile.lock'))).specs.each do |spec|
+        gem_name = spec.name
 
         dependent_recipe = "#{gem_name.gsub(/-/, '_')}_gem_dependencies".to_sym
         if method_defined?(dependent_recipe)
