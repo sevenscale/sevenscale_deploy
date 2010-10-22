@@ -3,7 +3,7 @@ module SevenScaleDeploy
     def bundler_dependencies(options = {})
       root = options.delete(:root)
 
-      gem 'bundler', '~> 1.0.3'
+      Gem.activate 'bundler', '~> 1.0.3'
       require 'bundler'
       Bundler::LockfileParser.new(File.read(File.join(root, 'Gemfile.lock'))).specs.each do |spec|
         gem_name = spec.name
