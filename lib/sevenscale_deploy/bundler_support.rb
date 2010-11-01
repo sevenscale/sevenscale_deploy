@@ -4,7 +4,6 @@ module SevenScaleDeploy
       root = options.delete(:root)
       
       parse_gemfile_lock(File.join(root, 'Gemfile.lock')).each do |gem_name|
-        puts "gem_name: #{gem_name}"
         dependent_recipe = "#{gem_name.gsub(/-/, '_')}_gem_dependencies".to_sym
         if method_defined?(dependent_recipe)
           recipe(dependent_recipe, options)
