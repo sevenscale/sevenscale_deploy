@@ -17,6 +17,7 @@ namespace :capistrano do
       end
     end
 
+    run "mkdir #{shared_path}/config"
     put YAML::dump(config_hash), "#{shared_path}/config/capistrano_servers.yml"
     run "ln -nsf #{shared_path}/config/capistrano_servers.yml #{release_path}/config/capistrano_servers.yml"
   end
