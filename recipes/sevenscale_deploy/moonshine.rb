@@ -3,6 +3,7 @@ namespace :moonshine do
   #   apply if fetch(:moonshine_apply, true)
   # end
   before 'moonshine:apply', 'moonshine:ensure_installed'
+  before 'moonshine:apply', 'bundler:install'
 
   desc 'Setup moonshine'
   task :setup do

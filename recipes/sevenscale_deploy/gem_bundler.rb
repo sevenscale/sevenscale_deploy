@@ -18,11 +18,11 @@ module GemBundler
         desc "Run bundler on a new release"
         task :bundle, :roles => options[:roles] do
           bundle_root     = File.join(release_path, bundle_root_subdir.to_s)
-          shared_root_dir = File.join(shared_path, 'bundler')
+          shared_root_dir = File.join(shared_path, 'bundle')
 
           withouts = Array(options[:without]).map { |w| "--without #{w}"}.join(' ')
 
-          run "cd #{bundle_root} && bundle install #{withouts} #{shared_root_dir}"
+          run "cd #{bundle_root} && bundle install #{withouts} --deployment --quiet --path #{shared_root_dir}"
         end
       end
     end
@@ -36,12 +36,14 @@ module GemBundler
     namespace :bundler do
       desc 'Install correct version of gem bundler'
       task :install do
-        minimum_version          = '0.9.26'
-        minumim_rubygems_version = '1.3.6'
+        minimum_version           = '1.0.3'
+        minumim_rubygems_version  = '1.3.6'
+        minimum_gemcutter_version = '0.6.1'
 
         commands = [
           "system(*%w(gem update --system)) if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new(%(#{minumim_rubygems_version}))",
           "system(*%w(gem uninstall bundler -I -x -v) << %(< #{minimum_version})) if Gem.available?(%(bundler), %(< #{minimum_version}))",
+          "system(*%w(gem uninstall gemcutter -I -x -v) << %(< #{minimum_gemcutter_version})) if Gem.available?(%(gemcutter), %(< #{minimum_gemcutter_version}))",
           "system(*%w(gem install bundler -v) << %(~> #{minimum_version})) unless Gem.available?(%(bundler), %(~> #{minimum_version}))"
           ]
 
