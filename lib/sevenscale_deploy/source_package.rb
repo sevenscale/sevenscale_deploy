@@ -10,12 +10,17 @@ module SevenScaleDeploy
       compression_scheme = options[:compression_scheme]
       if options[:stow]
         stow_root        = options[:stow].is_a?(String) ? options[:stow] : '/usr/local/stow'
+        prefix           = options[:prefix]             || "#{stow_root}/#{expanded_directory}"
         stow_command     = options[:stow_command]       || "stow #{expanded_directory}"
-        compile_command  = options[:compile_command]    || "./configure --prefix=#{stow_root}/#{expanded_directory} && make"
+        compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       else
-        compile_command  = options[:compile_command]    || './configure && make'
+        prefix           = options[:prefix]             || '/usr/local'
+        compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       end
       install_command    = options[:install_command]    || 'make install'
+
+      compile_command.gsub!('%PREFIX%', prefix)
+      install_command.gsub!('%PREFIX%', prefix)
 
       # We're deleting these so they don't end up in the metadata file
       requirements       = Array(options.delete(:require))
