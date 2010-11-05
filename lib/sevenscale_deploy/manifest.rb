@@ -8,5 +8,6 @@ module SevenScaleDeploy
   class Manifest < SevenScaleDeploy::BasicManifest
     include Moonshine::Manifest::Rails::Os
     include SevenScaleDeploy::StandardPackages
+    include SevenScaleDeploy::Passenger
   end
 end
