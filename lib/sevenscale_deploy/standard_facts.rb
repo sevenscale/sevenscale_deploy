@@ -10,6 +10,19 @@ Facter.add(:rails_root) do
   end
 end
 
+Facter.add(:operatingsystemflavor) do
+  setcode do
+    case Facter.operatingsystem
+    when 'RedHat', 'Fedora', 'CentOS'
+      'RedHat'
+    when 'Ubuntu', 'Debian'
+      'Debian'
+    else
+      Facter.operatingsystem
+    end
+  end
+end
+
 Facter.add(:first_capistrano_role) do
   setcode do
     ENV['CAPISTRANO_ROLES'].to_s.split(',').first

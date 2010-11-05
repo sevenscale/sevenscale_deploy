@@ -44,11 +44,15 @@ module SevenScaleDeploy
       package 'apr-devel',   :ensure => :installed
     end
 
-    def apache
-      package 'httpd',   :ensure => :installed
-      package 'mod_ssl', :ensure => :installed
+    def apache(options = {})
+      package 'apache2', :name => 'httpd', :ensure => options[:version] || :installed
+      package 'mod_ssl', :ensure => :installed, :require => package('apache2')
 
-      service 'httpd', :ensure => :running, :enable => true, :require => [ package('httpd'), package('mod_ssl') ]
+      service "apache2",
+        :name => 'httpd',
+        :ensure => :running,
+        :enable => true,
+        :require => [ package('apache2'), package('mod_ssl') ]
     end
 
     def build_tools
