@@ -15,16 +15,22 @@ namespace :shared do
     end.join(' ')
 
     # Create any destination directories we need to
-    cmd << "mkdir -p " + shared_directories.collect do |d|
-      File.join(shared_path, d)
-    end.join(' ')
+    unless shared_directories.empty?
+      cmd << "mkdir -p " + shared_directories.collect do |d|
+        File.join(shared_path, d)
+      end.join(' ')
+    end
 
     # Create any parent directories of directories we need to
-    cmd << "mkdir -p " + shared_directories.reject do |d|
+    parent_directories = shared_directories.reject do |d|
       File.dirname(d) == '.'
     end.collect do |d|
       File.join(latest_release, File.dirname(d))
-    end.join(' ')
+    end
+
+    unless parent_directories.empty?
+      cmd << "mkdir -p " + parent_directories.join(' ')
+    end
 
     # Symlink that stuff up
     (shared_files + shared_directories).each do |f|
