@@ -39,10 +39,12 @@ namespace :ree do
     # Run the installer
     cmds << "cd #{src_root}/#{expanded_directory} && #{sudo} ./installer -a /usr --dont-install-useful-gems && #{sudo} rm -rf #{src_root}"
 
-    hosts_in_need = ree.find_hosts_in_need('ruby -v') { |out| out.match(version_matcher) }
+    hosts_in_need = ree.find_hosts_in_need('ruby -v') { |out| out.match(version_matcher) && !fetch(:force_ree_install, false) }
 
     unless hosts_in_need.empty?
-      run cmds.join(' && '), :hosts => hosts_in_need
+      users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+        run cmds.join(' && '), :hosts => hosts_in_need
+      end
     end
   end
 
@@ -54,6 +56,8 @@ namespace :ree do
     case distribution = fetch_os_distribution
     when 'Fedora'
       %{#{sudo} /bin/sh -c "yum erase -y ruby ; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
+    when 'RedHat'
+      %{#{sudo} /bin/sh -c "yum erase -y ruby ruby-libs; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
     when 'Ubuntu'
       %{#{sudo} /bin/sh -c "apt-get remove -q -y '^.*ruby.*' ; apt-get install -q -y build-essential patch zlib1g-dev libssl-dev libreadline5-dev"}
     else

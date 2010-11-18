@@ -99,7 +99,9 @@ namespace :users do
   end
 
   def brute_force_authenticate
-    auths           = [ [ fetch(:user), fetch(:password) ] ]
+    auths = [ [ fetch(:user), fetch(:password) ] ]
+    auths += @auths_by_server.keys if @auths_by_server
+
     auths_by_server = Hash.new{ |h,k| h[k] = [] }
 
     find_servers.each do |server|
@@ -129,7 +131,7 @@ namespace :users do
       end
     end
 
-    auths_by_server
+    @auths_by_server = auths_by_server
   end
 
   def connect_as(user, password, &block)

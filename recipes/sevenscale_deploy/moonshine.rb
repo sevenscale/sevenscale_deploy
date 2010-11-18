@@ -14,6 +14,7 @@ namespace :moonshine do
   desc 'Install required gems'
   task :ensure_installed do
     commands = [
+      "system(*%w(gem install activesupport -v 2.3.5 --no-rdoc --no-ri)) unless Gem.available?(%(activesupport))",
       "system(*%w(gem install shadow_puppet --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
       "system(*%w(gem install rake --no-rdoc --no-ri)) unless Gem.available?(%(rake))"
       ]
@@ -35,7 +36,7 @@ namespace :moonshine do
     upload moonshine_setup_manifest_path, '/tmp/moonshine_setup_manifest.rb'
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo 'shadow_puppet /tmp/moonshine_setup_manifest.rb; rm /tmp/moonshine_setup_manifest.rb /tmp/moonshine.yml'
+      sudo '/bin/sh -c "shadow_puppet /tmp/moonshine_setup_manifest.rb; rm -f /tmp/moonshine_setup_manifest.rb /tmp/moonshine.yml"'
     end
   end
 
@@ -58,13 +59,17 @@ namespace :moonshine do
   end
 
   def install_git_package
-    case distribution = fetch_os_distribution
-    when 'Fedora'
-      sudo 'yum install -y git-core'
-    when 'Ubuntu'
-      sudo 'apt-get install -q -y git-core'
-    else
-      raise "Unknown distribution: #{distribution.inspect}"
+    users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+      case distribution = fetch_os_distribution
+      when 'Fedora'
+        sudo 'yum install -y git-core'
+      when 'RedHat'
+        sudo '/bin/sh -c "rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm; yum install -y git"'
+      when 'Ubuntu'
+        sudo 'apt-get install -q -y git-core'
+      else
+        raise "Unknown distribution: #{distribution.inspect}"
+      end
     end
   end
 end
