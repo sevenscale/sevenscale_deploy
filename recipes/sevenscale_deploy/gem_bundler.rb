@@ -36,7 +36,7 @@ module GemBundler
     namespace :bundler do
       desc 'Install correct version of gem bundler'
       task :install do
-        minimum_version           = '1.0.6'
+        minimum_version           = '1.0.7'
         minumim_rubygems_version  = '1.3.6'
         minimum_gemcutter_version = '0.6.1'
 
