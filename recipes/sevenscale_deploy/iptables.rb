@@ -36,40 +36,45 @@ namespace :iptables do
     end
   end
 
-  def all(port, options = {})
-    role(:all, port, options)
+  def all(*args)
+    role(:all, *args)
   end
 
   def role(role, *ports)
     options   = ports.last.is_a?(Hash) ? ports.pop : {}
 
-    task_opts = role == :all ? {} : { :roles => role }
+    generate_rule(role)
 
-    options[:protocol] ||= 'tcp'
-
-    ports.each do |port|
-      iptables.rules[role.to_sym] << options.merge({ :port => port })
-
-      port_description = iptables.rules[role.to_sym].map { |o| "#{o[:port]}/#{o[:protocol]}" }.join(', ')
-
-      namespace :apply do
-        desc "Allow port #{port_description} in iptables"
-        task role, task_opts do
-          chain_prefix = "#{fetch(:application).upcase}-#{role.to_s.upcase}"
-          chain = "#{chain_prefix[0..23]}-INPUT"
-
-          commands = iptables.flush_commands(chain)
-
-          commands += iptables.rules[role.to_sym].collect do |rule|
-            iptables.enable_commands(chain, rule[:port], rule[:protocol], rule)
-          end
-
-          sudo %{/bin/sh -c "#{commands.flatten.join(' && ')}"}
-
-          iptables.save
-        end
+    if ports.empty? && !options.empty?
+      iptables.rules[role.to_sym] << options
+    else
+      ports.each do |port|
+        iptables.rules[role.to_sym] << options.merge({ :port => port })
       end
     end
+  end
+
+  def generate_rule(role)
+    task_opts = role == :all ? {} : { :roles => role }
+
+    namespace :apply do
+      desc "Apply iptables rules for #{role}"
+      task role, task_opts do
+        chain_prefix = "#{fetch(:application).upcase}-#{role.to_s.upcase}"
+        chain = "#{chain_prefix[0..23]}-INPUT"
+
+        commands = iptables.flush_commands(chain)
+
+        commands += iptables.rules[role.to_sym].collect do |rule|
+          iptables.enable_commands(chain, rule)
+        end
+
+        sudo %{/bin/sh -c "#{commands.flatten.join(' && ')}"}
+
+        iptables.save
+      end
+    end
+
   end
 
   def enable(chain, port, protocol, options = {})
@@ -90,7 +95,21 @@ namespace :iptables do
     ]
   end
 
-  def enable_commands(chain, port, protocol, options = {})
+  def enable_commands(chain, options)
+    if options[:interface]
+      enable_interface(chain, options[:interface], options)
+    else
+      enable_port(chain, options[:port], options[:protocol], options)
+    end
+  end
+
+  def enable_interface(chain, interface, options = {})
+    [ %{/sbin/iptables -A #{chain} -i #{interface} -j ACCEPT} ]
+  end
+
+  def enable_port(chain, port, protocol, options = {})
+    protocol ||= 'tcp'
+
     servers = []
     if from_roles = (options[:from_role] || options[:from_roles])
       servers += find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
