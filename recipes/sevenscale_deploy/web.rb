@@ -1,7 +1,7 @@
 namespace :web do
   desc 'Enable web site'
   task :enable, :roles => :app, :except => { :no_release => true } do
-    run "rm #{current}/public/system/maintenance.html"
+    run "rm #{current_path}/public/system/maintenance.html"
   end
   
   desc 'Disable web site'
