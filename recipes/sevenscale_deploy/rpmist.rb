@@ -41,6 +41,12 @@ namespace :rpms do
   end
 
   def yum_command_for(role)
-    "#{sudo} yum -qy install #{(@@rpms[role.to_sym] + @@rpms[:all]).to_a.join(' ')}"
+    rpms = (@@rpms[role.to_sym] + @@rpms[:all]).to_a
+
+    if rpms.empty?
+      ""
+    else
+      "#{sudo} yum -qy install #{rpms.join(' ')}"
+    end
   end
 end
