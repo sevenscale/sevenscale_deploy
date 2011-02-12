@@ -50,6 +50,7 @@ module SevenScaleDeploy
 
       service "apache2",
         :name => 'httpd',
+        :pattern => 'httpd',
         :ensure => :running,
         :enable => true,
         :require => [ package('apache2'), package('mod_ssl') ]
