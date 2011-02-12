@@ -1,5 +1,19 @@
 module SevenScaleDeploy
   module StandardPackages
+    def self.included(manifest)
+      manifest.configure :apache => {
+        :keep_alive => 'Off',
+        :max_keep_alive_requests => 100,
+        :keep_alive_timeout => 15,
+        :max_clients => 150,
+        :server_limit => 16,
+        :timeout => 300,
+        :trace_enable => 'On',
+        :gzip => false,
+        :gzip_types => ['text/html', 'text/plain', 'text/xml', 'text/css', 'application/x-javascript', 'application/javascript']
+      }
+    end
+
     # Install ntp and enables the ntp service.
     def ntp
       package 'ntp', :ensure => :installed
@@ -89,6 +103,11 @@ module SevenScaleDeploy
           package 'libcurl-devel', options.reverse_merge(:ensure => :installed)
         end
       end
+    end
+
+    def oniguruma_gem_dependencies(options = {})
+      package 'oniguruma',       options.reverse_merge(:ensure => :installed)
+      package 'oniguruma-devel', options.reverse_merge(:ensure => :installed)
     end
 
     def iostat
