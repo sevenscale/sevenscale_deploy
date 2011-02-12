@@ -6,7 +6,12 @@ module SevenScaleDeploy
     end
 
     def passenger_gem(options = {})
-      package "passenger", :ensure => (options[:version] || :latest), :provider => :gem
+      package 'libcurl-devel', :ensure => :installed
+
+      package "passenger", :ensure => (options[:version] || :latest), :provider => :gem,
+        :require => [
+          package('libcurl-devel')
+        ]
     end
 
     def passenger_apache_module(options = {})
