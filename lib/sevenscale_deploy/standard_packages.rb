@@ -1,19 +1,5 @@
 module SevenScaleDeploy
   module StandardPackages
-    def self.included(manifest)
-      manifest.configure :apache => {
-        :keep_alive => 'Off',
-        :max_keep_alive_requests => 100,
-        :keep_alive_timeout => 15,
-        :max_clients => 150,
-        :server_limit => 16,
-        :timeout => 300,
-        :trace_enable => 'On',
-        :gzip => false,
-        :gzip_types => ['text/html', 'text/plain', 'text/xml', 'text/css', 'application/x-javascript', 'application/javascript']
-      }
-    end
-
     # Install ntp and enables the ntp service.
     def ntp
       package 'ntp', :ensure => :installed
@@ -56,18 +42,6 @@ module SevenScaleDeploy
     def httpd_development_libraries
       package 'httpd-devel', :ensure => :installed
       package 'apr-devel',   :ensure => :installed
-    end
-
-    def apache(options = {})
-      package 'apache2', :name => 'httpd', :ensure => options[:version] || :installed
-      package 'mod_ssl', :ensure => :installed, :require => package('apache2')
-
-      service "apache2",
-        :name => 'httpd',
-        :pattern => 'httpd',
-        :ensure => :running,
-        :enable => true,
-        :require => [ package('apache2'), package('mod_ssl') ]
     end
 
     def build_tools
