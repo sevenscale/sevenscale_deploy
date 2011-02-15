@@ -12,10 +12,11 @@ namespace :web do
     reason = ENV['REASON']
     deadline = ENV['UNTIL']
 
-    template = File.read(File.join(File.dirname(__FILE__), "assets", "maintenance.rhtml"))
+    maintenance_file = fetch(:maintenance_file, File.join(File.dirname(__FILE__), "assets", "maintenance.rhtml"))
+
+    template = File.read(maintenance_file)
     result = ERB.new(template).result(binding)
 
     put result, "#{current_path}/public/system/maintenance.html", :mode => 0644
   end
-  
 end
