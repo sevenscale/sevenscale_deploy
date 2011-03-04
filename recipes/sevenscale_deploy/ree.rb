@@ -6,8 +6,8 @@ namespace :ree do
 
   desc "Install Ruby Enterprise Edition"
   task :install do
-    url             = 'http://rubyforge.org/frs/download.php/68719/ruby-enterprise-1.8.7-2010.01.tar.gz'
-    version_matcher = /1.8.7.*2010.01/
+    url             = 'http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2011.03.tar.gz'
+    version_matcher = /1.8.7.*2011.03/
 
     ree.install_ruby(url, version_matcher)
   end
