@@ -62,8 +62,9 @@ module Gemist
   def update_system
     gem_install = fetch('gemist_gem_install') { "gem install --no-rdoc --no-ri" }
     gem_update  = fetch('gemist_gem_update') { gem_install.sub('install', 'update') }
+    gem_version = fetch('rubygems_version', '')
 
-    sudo("#{gem_update} --system")
+    sudo("#{gem_update} --system #{gem_version}")
   end
 
   # Auto selects a gem from a list and installs it.
