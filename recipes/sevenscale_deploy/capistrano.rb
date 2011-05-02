@@ -4,7 +4,7 @@ namespace :capistrano do
 
   desc 'Write servers config file'
   task :write_servers do
-    return if fetch(:no_capistrano_servers_yml, false)
+    next if fetch(:no_capistrano_servers_yml, false)
 
     config_hash = {}
     config_hash['roles'] = {}
