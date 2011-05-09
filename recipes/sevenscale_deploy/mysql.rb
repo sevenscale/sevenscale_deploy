@@ -38,7 +38,9 @@ namespace :mysql do
 
     servers = self.roles.values.collect do |role|
       role.servers.collect do |server|
-        [ server.host, IPSocket.getaddress(server.host) ]
+        [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
+          [ host, IPSocket.getaddress(host) ]
+        end
       end
     end.flatten.uniq
 
