@@ -16,8 +16,16 @@ module SevenScaleDeploy
       __config__
     end
 
-    def self.configure(hash)
-      __config__.replace(__config__.to_hash.deep_merge(hash).with_indifferent_access)
+    def self.configure(other_hash)
+      deep_merge = lambda do |h1, h2|
+        h1.to_hash.merge(h2.to_hash) do |key, oldval, newval|
+          oldval = oldval.to_hash if oldval.respond_to?(:to_hash)
+          newval = newval.to_hash if newval.respond_to?(:to_hash)
+          oldval.class.to_s == 'Hash' && newval.class.to_s == 'Hash' ? deep_merge.call(oldval, newval): newval
+        end
+      end
+
+      __config__.replace(deep_merge.call(__config__, other_hash).with_indifferent_access)
     end
 
     # Perform fact-specific overrides
