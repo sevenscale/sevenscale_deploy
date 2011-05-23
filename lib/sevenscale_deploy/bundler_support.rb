@@ -33,7 +33,7 @@ module SevenScaleDeploy
           next
         end
 
-        if in_specs_list && gem_name = line[/^ +(.*?)(?: \(.*)$/, 1]
+        if in_specs_list && gem_name = line[/^ +(.*?)(?: \(.*)?(!)?$/, 1]
           gems << gem_name
         end
       end
