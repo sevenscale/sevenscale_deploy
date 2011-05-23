@@ -39,7 +39,6 @@ module SevenScaleDeploy
         end
 
         if in_specs_list && gem_name = line[/^ +(.*?)(?: \(.*)?(?:!)?$/, 1]
-          puts gem_name
           gems << gem_name
         end
       end
