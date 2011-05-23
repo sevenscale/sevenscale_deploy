@@ -23,8 +23,13 @@ module SevenScaleDeploy
       
       File.read(lockfile).split(/(\r?\n)+/).each do |line|
         if mode = line[/^(\w+)$/, 1]
-          in_gem_list = mode == 'GEM'
-          in_specs_list = false
+          if mode == 'GEM'
+            in_gem_list = true
+            in_specs_list = false
+          elsif mode == 'DEPENDENCIES'
+            in_gem_list = in_specs_list = true
+          end
+
           next
         end
 
@@ -33,7 +38,8 @@ module SevenScaleDeploy
           next
         end
 
-        if in_specs_list && gem_name = line[/^ +(.*?)(?: \(.*)?(!)?$/, 1]
+        if in_specs_list && gem_name = line[/^ +(.*?)(?: \(.*)?(?:!)?$/, 1]
+          puts gem_name
           gems << gem_name
         end
       end
