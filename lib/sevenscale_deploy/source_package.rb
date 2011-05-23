@@ -12,6 +12,9 @@ module SevenScaleDeploy
         stow_root        = options[:stow].is_a?(String) ? options[:stow] : '/usr/local/stow'
         prefix           = options[:prefix]             || "#{stow_root}/#{expanded_directory}"
         stow_command     = options[:stow_command]       || "stow #{expanded_directory}"
+        stow_prefix      = options[:stow_prefix]        || expanded_directory[/^(.+)-/, 1]
+        stow_prefix_glob = options[:stow_prefix_glob]   || "#{stow_root}/#{stow_prefix}-*"
+        unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix_glob}"
         compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       else
         prefix           = options[:prefix]             || '/usr/local'
@@ -38,7 +41,7 @@ module SevenScaleDeploy
       # See: http://projects.puppetlabs.com/issues/3873
       tricky_metadata_filename = File.join(expanded_root, '.', 'source-package-installed')
 
-      unless_command = %{test -f "#{tricky_metadata_filename}" -a "#{metadata_checksum}" = "`md5sum #{tricky_metadata_filename} | awk '{print $1}'`"}
+      unless_command = %{(test -f "#{tricky_metadata_filename}" -a "#{metadata_checksum}" = "`md5sum #{tricky_metadata_filename} | awk '{print $1}'`")}
 
       if options[:stow]
         file stow_root, :ensure => :directory
@@ -86,13 +89,21 @@ module SevenScaleDeploy
         :subscribe   => exec("source_package compile #{name}")
 
       if options[:stow]
+        exec "source_package unstow #{name}",
+          :command   => unstow_command,
+          :cwd       => stow_root,
+          :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
+          :unless    => unless_command + " && (test `ls -d1 #{stow_prefix_glob} | wc -l` -lt 2)",
+          :subscribe => exec("source_package install #{name}"),
+          :require   => [ file(stow_root), stow_dependency ]
+
         exec "source_package stow #{name}",
           :command   => stow_command,
           :cwd       => stow_root,
           :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
           :unless    => unless_command,
           :subscribe => exec("source_package install #{name}"),
-          :require   => [ file(stow_root), stow_dependency ]
+          :require   => [ file(stow_root), stow_dependency, exec("source_package unstow #{name}") ]
 
         file "source_package #{name}",
           :path      => metadata_filename,
