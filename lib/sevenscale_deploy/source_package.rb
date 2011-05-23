@@ -75,6 +75,8 @@ module SevenScaleDeploy
         :command     => compile_command,
         :cwd         => expanded_root,
         :unless      => unless_command,
+        :timeout     => 60 * 30, # Give it 30 minutes to compile
+        :logoutput   => :on_failure,
         :require     => requirements + [ exec("source_package untar #{name}") ]
 
       exec "source_package install #{name}",
