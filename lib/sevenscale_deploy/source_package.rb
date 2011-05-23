@@ -13,8 +13,7 @@ module SevenScaleDeploy
         prefix           = options[:prefix]             || "#{stow_root}/#{expanded_directory}"
         stow_command     = options[:stow_command]       || "stow #{expanded_directory}"
         stow_prefix      = options[:stow_prefix]        || expanded_directory[/^(.+)-/, 1]
-        stow_prefix_glob = options[:stow_prefix_glob]   || "#{stow_root}/#{stow_prefix}-*"
-        unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix_glob}"
+        unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix}-*"
         compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       else
         prefix           = options[:prefix]             || '/usr/local'
@@ -93,7 +92,7 @@ module SevenScaleDeploy
           :command   => unstow_command,
           :cwd       => stow_root,
           :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
-          :unless    => unless_command + " && (test `ls -d1 #{stow_prefix_glob} | wc -l` -lt 2)",
+          :unless    => unless_command + " && (test `ls -d1 #{stow_root}/#{stow_prefix}-* | wc -l` -lt 2)",
           :subscribe => exec("source_package install #{name}"),
           :require   => [ file(stow_root), stow_dependency ]
 
