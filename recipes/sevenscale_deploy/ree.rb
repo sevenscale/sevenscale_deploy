@@ -1,8 +1,13 @@
 require 'set'
 
 namespace :ree do
-  # Make sure the required RPMs are installed
-  # rpmist.all %w(openssl-devel readline-devel)
+  desc "Install Kiji"
+  task :install_kiji do
+    url = "https://download.github.com/twitter-rubyenterpriseedition187-248-kiji_0_11-0-g5ac7c4f.tar.gz"
+    version_matcher = /kiji.*0.11/
+
+    ree.install_ruby(url, version_matcher)
+  end
 
   desc "Install Ruby Enterprise Edition"
   task :install do
