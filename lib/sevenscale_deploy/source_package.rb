@@ -12,8 +12,10 @@ module SevenScaleDeploy
         stow_root        = options[:stow].is_a?(String) ? options[:stow] : '/usr/local/stow'
         prefix           = options[:prefix]             || "#{stow_root}/#{expanded_directory}"
         stow_command     = options[:stow_command]       || "stow #{expanded_directory}"
-        stow_prefix      = options[:stow_prefix]        || expanded_directory[/^(.+)-/, 1]
-        unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix}-*"
+        stow_prefix      = options[:stow_prefix]
+        if stow_prefix
+          unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix}-*"
+        end
         compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       else
         prefix           = options[:prefix]             || '/usr/local'
@@ -88,13 +90,19 @@ module SevenScaleDeploy
         :subscribe   => exec("source_package compile #{name}")
 
       if options[:stow]
-        exec "source_package unstow #{name}",
-          :command   => unstow_command,
-          :cwd       => stow_root,
-          :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
-          :unless    => unless_command + " && (test `ls -d1 #{stow_root}/#{stow_prefix}-* | wc -l` -lt 2)",
-          :subscribe => exec("source_package install #{name}"),
-          :require   => [ file(stow_root), stow_dependency ]
+        stow_requirements = [ file(stow_root), stow_dependency ]
+
+        if unstow_command
+          exec "source_package unstow #{name}",
+            :command   => unstow_command,
+            :cwd       => stow_root,
+            :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
+            :unless    => unless_command + " && (test `ls -d1 #{stow_root}/#{stow_prefix}-* | wc -l` -lt 2)",
+            :subscribe => exec("source_package install #{name}"),
+            :require   => stow_requirements
+
+          stow_requirements = stow_requirements + [ exec("source_package unstow #{name}") ]
+        end
 
         exec "source_package stow #{name}",
           :command   => stow_command,
@@ -102,7 +110,7 @@ module SevenScaleDeploy
           :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
           :unless    => unless_command,
           :subscribe => exec("source_package install #{name}"),
-          :require   => [ file(stow_root), stow_dependency, exec("source_package unstow #{name}") ]
+          :require   => stow_requirements
 
         file "source_package #{name}",
           :path      => metadata_filename,
