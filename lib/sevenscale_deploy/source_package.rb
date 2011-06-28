@@ -97,7 +97,7 @@ module SevenScaleDeploy
             :command   => unstow_command,
             :cwd       => stow_root,
             :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
-            :unless    => unless_command + " && (test `ls -d1 #{stow_root}/#{unstow_prefix}-* | wc -l` -lt 2)",
+            :unless    => unless_command + " || (test `ls -d1 #{stow_root}/#{unstow_prefix}-* | wc -l` -lt 2)",
             :subscribe => exec("source_package install #{name}"),
             :require   => stow_requirements
 
