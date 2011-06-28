@@ -98,11 +98,11 @@ module SevenScaleDeploy
             :cwd       => stow_root,
             :path      => '/bin:/usr/bin:/usr/local/bin:/opt/bin',
             :unless    => unless_command,
-            :onlyif    => "test `ls -d1 #{stow_root}/#{unstow_prefix}-* | wc -l` -lt 2"
+            :onlyif    => "test `ls -d1 #{stow_root}/#{unstow_prefix}-* | wc -l` -lt 2",
             :subscribe => exec("source_package install #{name}"),
             :require   => stow_requirements
 
-          stow_requirements = stow_requirements + [ exec("source_package unstow #{name}") ]
+          stow_requirements << exec("source_package unstow #{name}")
         end
 
         exec "source_package stow #{name}",
