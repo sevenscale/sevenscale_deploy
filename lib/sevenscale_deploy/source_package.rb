@@ -12,9 +12,9 @@ module SevenScaleDeploy
         stow_root        = options[:stow].is_a?(String) ? options[:stow] : '/usr/local/stow'
         prefix           = options[:prefix]             || "#{stow_root}/#{expanded_directory}"
         stow_command     = options[:stow_command]       || "stow #{expanded_directory}"
-        stow_prefix      = options[:stow_prefix]
-        if stow_prefix
-          unstow_command   = options[:unstow_command]     || "stow -D #{stow_prefix}-*"
+        unstow_prefix    = options[:unstow_prefix]
+        if unstow_prefix
+          unstow_command = options[:unstow_command]     || "stow -D #{unstow_prefix}-*"
         end
         compile_command  = options[:compile_command]    || "./configure --prefix=#{prefix} && make"
       else
