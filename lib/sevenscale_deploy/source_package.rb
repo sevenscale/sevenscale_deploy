@@ -102,7 +102,7 @@ module SevenScaleDeploy
             :subscribe => exec("source_package install #{name}"),
             :require   => stow_requirements
 
-          stow_requirements << exec("source_package unstow #{name}")
+          stow_requirements = stow_requirements + [ exec("source_package unstow #{name}") ]
         end
 
         exec "source_package stow #{name}",
