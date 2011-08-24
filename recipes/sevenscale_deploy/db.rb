@@ -9,6 +9,7 @@ namespace :db do
     db_name     = fetch(:db_name)     { fetch(:application) }
     db_adapter  = fetch(:db_adapter, 'mysql')
     db_pool     = fetch(:db_pool, 5)
+    db_options  = fetch(:db_options, {})
     rails_env   = fetch(:rails_env, 'production')
 
     unless primary_db_host = fetch(:db_host, nil)
@@ -25,7 +26,7 @@ namespace :db do
     all_db_hosts ||= [ primary_db_host ]
 
     database_yml = {}
-    database_spec = database_yml[rails_env] = {}
+    database_spec = database_yml[rails_env] = db_options.dup
 
     database_spec['adapter']  = db_adapter
     database_spec['username'] = db_user
@@ -35,7 +36,7 @@ namespace :db do
     database_spec['pool']     = db_pool
 
     all_db_hosts.each do |db_host|
-      host_spec = database_spec[db_host] = {}
+      host_spec = database_spec[db_host] = db_options.dup
 
       host_spec['adapter']  = db_adapter
       host_spec['username'] = db_user
