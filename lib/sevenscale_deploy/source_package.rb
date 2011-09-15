@@ -29,7 +29,12 @@ module SevenScaleDeploy
       # We're deleting these so they don't end up in the metadata file
       requirements       = Array(options.delete(:require))
 
-      tar_options = guess_tar_options(filename, compression_scheme)
+      if file.match(/\.zip$/)
+        uncompress_command = "unzip -d #{build_root} #{dist_filename}"
+      else
+        tar_options = guess_tar_options(filename, compression_scheme)
+        uncompress_command = "tar #{tar_options}xf #{dist_filename} -C #{build_root}"
+      end
 
       dist_filename     = File.join(dist_root, filename)
       download_filename = File.join(dist_root, '.' + filename)
@@ -70,8 +75,8 @@ module SevenScaleDeploy
         :creates => dist_filename,
         :require => [ package('curl'), file('/usr/src/dist') ]
 
-      exec "source_package untar #{name}",
-        :command => "rm -rf #{expanded_root}; tar #{tar_options}xf #{dist_filename} -C #{build_root}",
+      exec "source_package uncompress #{name}",
+        :command => "rm -rf #{expanded_root}; #{uncompress_command}",
         :unless  => unless_command,
         :require => exec("source_package fetch #{name}")
 
@@ -81,7 +86,7 @@ module SevenScaleDeploy
         :unless      => unless_command,
         :timeout     => 60 * 30, # Give it 30 minutes to compile
         :logoutput   => :on_failure,
-        :require     => requirements + [ exec("source_package untar #{name}") ]
+        :require     => requirements + [ exec("source_package uncompress #{name}") ]
 
       exec "source_package install #{name}",
         :command     => install_command,
