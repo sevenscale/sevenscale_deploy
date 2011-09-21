@@ -29,19 +29,19 @@ module SevenScaleDeploy
       # We're deleting these so they don't end up in the metadata file
       requirements       = Array(options.delete(:require))
 
-      if filename.match(/\.zip$/)
-        uncompress_command = "unzip -d #{build_root} #{dist_filename}"
-      else
-        tar_options = guess_tar_options(filename, compression_scheme)
-        uncompress_command = "tar #{tar_options}xf #{dist_filename} -C #{build_root}"
-      end
-
       dist_filename     = File.join(dist_root, filename)
       download_filename = File.join(dist_root, '.' + filename)
 
       metadata_content  = "Installed #{name} from #{url}:\n#{options.sort.to_yaml}"
       metadata_checksum = Digest::MD5.hexdigest(metadata_content)
       metadata_filename = File.join(expanded_root, 'source-package-installed')
+
+      if filename.match(/\.zip$/)
+        uncompress_command = "unzip -d #{build_root} #{dist_filename}"
+      else
+        tar_options = guess_tar_options(filename, compression_scheme)
+        uncompress_command = "tar #{tar_options}xf #{dist_filename} -C #{build_root}"
+      end
 
       # We need this to trick puppet into not creating a requirement
       # See: http://projects.puppetlabs.com/issues/3873
