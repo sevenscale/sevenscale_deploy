@@ -29,7 +29,7 @@ module SevenScaleDeploy
       # We're deleting these so they don't end up in the metadata file
       requirements       = Array(options.delete(:require))
 
-      if file.match(/\.zip$/)
+      if filename.match(/\.zip$/)
         uncompress_command = "unzip -d #{build_root} #{dist_filename}"
       else
         tar_options = guess_tar_options(filename, compression_scheme)
