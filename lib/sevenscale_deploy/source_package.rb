@@ -81,7 +81,7 @@ module SevenScaleDeploy
         :require => exec("source_package fetch #{name}")
 
       exec "source_package compile #{name}",
-        :command     => compile_command,
+        :command     => "true && " + compile_command,
         :cwd         => expanded_root,
         :unless      => unless_command,
         :timeout     => 60 * 30, # Give it 30 minutes to compile
