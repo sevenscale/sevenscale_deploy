@@ -47,7 +47,7 @@ module SevenScaleDeploy
       # See: http://projects.puppetlabs.com/issues/3873
       tricky_metadata_filename = File.join(expanded_root, '.', 'source-package-installed')
 
-      unless_command = %{(test -f "#{tricky_metadata_filename}" -a "#{metadata_checksum}" = "`md5sum #{tricky_metadata_filename} | awk '{print $1}'`")}
+      unless_command = %{test -f "#{tricky_metadata_filename}" -a "#{metadata_checksum}" = "`md5sum #{tricky_metadata_filename} | awk '{print $1}'`"}
 
       if options[:stow]
         file stow_root, :ensure => :directory
