@@ -14,7 +14,18 @@ namespace :ree do
     url             = 'http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise-1.8.7-2011.03.tar.gz'
     version_matcher = /1.8.7.*2011.03/
 
-    ree.install_ruby(url, version_matcher)
+    ree.install_ruby_from_bootstrap(version_matcher)
+  end
+
+  def install_ruby_from_bootstrap(version_matcher, options = {})
+    hosts_in_need = ree.find_hosts_in_need('ruby -v') { |out| out.match(version_matcher) && !fetch(:force_ree_install, false) }
+
+    unless hosts_in_need.empty?
+      users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
+        upload File.expand_path('../assets/ruby-bootstrap.sh', __FILE__), '/tmp/ruby-bootstrap.sh', :hosts => hosts_in_need
+        run "#{sudo} bash /tmp/ruby-bootstrap.sh && rm -f /tmp/ruby-bootstrap.sh", :hosts => hosts_in_need
+      end
+    end
   end
 
   # There's a major assumption here that all systems are of the same Linux Distribution
