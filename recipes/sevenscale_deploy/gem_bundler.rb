@@ -44,7 +44,7 @@ module GemBundler
           "system(*%w(gem update --system)) if Gem::Version.new(Gem::RubyGemsVersion) < Gem::Version.new(%(#{minumim_rubygems_version}))",
           "system(*%w(gem uninstall bundler -a -I -x -v) << %(< #{minimum_version})) if Gem.available?(%(bundler), %(< #{minimum_version}))",
           "system(*%w(gem uninstall gemcutter -I -x -v) << %(< #{minimum_gemcutter_version})) if Gem.available?(%(gemcutter), %(< #{minimum_gemcutter_version}))",
-          "system(*%w(gem install bundler -v) << %(~> #{minimum_version})) unless Gem.available?(%(bundler), %(~> #{minimum_version}))"
+          "system(*%w(gem install bundler --no-rdoc --no-ri -v) << %(~> #{minimum_version})) unless Gem.available?(%(bundler), %(~> #{minimum_version}))"
           ]
 
         sudo(%(/bin/sh -c "ruby -rubygems -e '#{commands.join("; ")}'"), :shell => false)
