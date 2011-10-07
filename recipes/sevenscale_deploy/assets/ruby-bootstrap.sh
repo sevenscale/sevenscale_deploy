@@ -16,6 +16,7 @@ install_yum_repo() {
 name=Papertrail Packages for Fedora \$releasever - \$basearch
 baseurl=https://s3.amazonaws.com/yum.papertrailapp.com/fedora/\$releasever/
 enabled=1
+gpgcheck=0
 EOF
   fi
 }
