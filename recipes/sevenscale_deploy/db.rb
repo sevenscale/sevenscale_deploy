@@ -58,7 +58,7 @@ namespace :db do
       host_spec['pool']     = db_pool
 
       # Overrides
-      host_spec.merge!(env.to_hash)
+      host_spec.merge!(env.stringify_keys)
     end
 
     run "mkdir -p #{shared_path}/config"
