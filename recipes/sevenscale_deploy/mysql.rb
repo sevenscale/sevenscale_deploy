@@ -29,39 +29,7 @@ namespace :mysql do
 
   desc "Grant database access to all hosts"
   task :grant, :roles => :db, :only => { :primary => true } do
-    db_root_user     = fetch(:db_root_user, 'root')
-    db_root_password = fetch(:db_root_password, nil)
-
-    db_user     = fetch(:db_user)     { fetch(:user) }
-    db_password = fetch(:db_password) { fetch(:password) }
-    db_name     = fetch(:db_name)     { fetch(:application) }
-
-    servers = self.roles.values.collect do |role|
-      role.servers.collect do |server|
-        [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
-          [ host, IPSocket.getaddress(host) ]
-        end
-      end
-    end.flatten.uniq
-
-    # Make sure we include localhost
-    servers += %w(localhost 127.0.0.1)
-
-    mysql_commands = []
-
-    servers.each do |server|
-      mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
-    end
-    mysql_commands << %{FLUSH PRIVILEGES;}
-
-    mysql_commands.each do |command|
-      mysql_auth = "-u#{db_root_user}"
-      mysql_auth << " -p" if db_root_password
-
-      run %(mysql #{mysql_auth} -e "#{command}") do |ch, stream, out|
-        ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
-      end
-    end
+    grant_for_database
   end
 
   desc "Download database dump"
@@ -125,5 +93,43 @@ namespace :mysql do
     end
 
     set :backup_file, "#{full_remote_filename}.bz2"
+  end
+
+  def grant_for_database(options = {})
+    options = options.symbolize_keys
+
+    db_root_user     = options[:root_user]     || fetch(:db_root_user, 'root')
+    db_root_password = options[:root_password] || fetch(:db_root_password, nil)
+    db_user          = options[:username]      || fetch(:db_user)     { fetch(:user) }
+    db_password      = options[:password]      || fetch(:db_password) { fetch(:password) }
+    db_name          = options[:database]      || fetch(:db_name)     { fetch(:application) }
+    db_host          = options[:host]
+
+    servers = self.roles.values.collect do |role|
+      role.servers.collect do |server|
+        [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
+          [ host, IPSocket.getaddress(host) ]
+        end
+      end
+    end.flatten.uniq
+
+    # Make sure we include localhost
+    servers += %w(localhost 127.0.0.1)
+
+    mysql_commands = []
+
+    servers.each do |server|
+      mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
+    end
+    mysql_commands << %{FLUSH PRIVILEGES;}
+
+    mysql_commands.each do |command|
+      mysql_auth = "-u#{db_root_user}"
+      mysql_auth << " -p" if db_root_password
+
+      run %(mysql #{mysql_auth} -e "#{command}"), :hosts => db_host do |ch, stream, out|
+        ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
+      end
+    end
   end
 end
