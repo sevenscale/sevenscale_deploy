@@ -11,6 +11,7 @@ namespace :db do
     db_pool     = fetch(:db_pool, 5)
     db_options  = fetch(:db_options, {})
     rails_env   = fetch(:rails_env, 'production')
+    db_envs     = fetch(:db_envs, {})
 
     unless primary_db_host = fetch(:db_host, nil)
       begin
@@ -44,6 +45,20 @@ namespace :db do
       host_spec['database'] = db_name
       host_spec['host']     = db_host
       host_spec['pool']     = db_pool
+    end
+
+    db_envs.each do |name, env|
+      host_spec = database_spec[name.to_s] = db_options.dup
+
+      host_spec['adapter']  = db_adapter
+      host_spec['username'] = db_user
+      host_spec['password'] = db_password
+      host_spec['database'] = db_name
+      host_spec['host']     = db_host
+      host_spec['pool']     = db_pool
+
+      # Overrides
+      host_spec.merge!(env.to_hash)
     end
 
     run "mkdir -p #{shared_path}/config"
