@@ -98,12 +98,12 @@ namespace :mysql do
   def grant_for_database(options = {})
     options = options.symbolize_keys
 
-    db_root_user     = options[:root_user]     || fetch(:db_root_user, 'root')
-    db_root_password = options[:root_password] || fetch(:db_root_password, nil)
-    db_user          = options[:username]      || fetch(:db_user)     { fetch(:user) }
-    db_password      = options[:password]      || fetch(:db_password) { fetch(:password) }
-    db_name          = options[:database]      || fetch(:db_name)     { fetch(:application) }
-    db_host          = options[:host]
+    db_root_user     = options[:root_user]          || fetch(:db_root_user, 'root')
+    db_root_password = options[:root_password]      || fetch(:db_root_password, nil)
+    db_user          = options[:username]           || fetch(:db_user)     { fetch(:user) }
+    db_password      = options[:password]           || fetch(:db_password) { fetch(:password) }
+    db_name          = options[:database]           || fetch(:db_name)     { fetch(:application) }
+    db_host          = options.delete(:run_on_host) || options[:host]
 
     servers = self.roles.values.collect do |role|
       role.servers.collect do |server|
