@@ -50,7 +50,7 @@ uninstall_system_ruby() {
 
   case "$os" in
     "fedora")
-      yum erase -y ruby ruby-libs
+      yum erase -qy ruby ruby-libs
       ;;
   esac
 }

@@ -62,9 +62,9 @@ namespace :moonshine do
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
       case distribution = fetch_os_distribution
       when 'Fedora'
-        sudo 'yum install -y git-core'
+        sudo 'yum install -qy git-core'
       when 'RedHat'
-        sudo '/bin/sh -c "rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm; yum install -y git"'
+        sudo '/bin/sh -c "rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm; yum install -qy git"'
       when 'Ubuntu'
         sudo 'apt-get install -q -y git-core'
       else

@@ -71,9 +71,9 @@ namespace :ree do
   def command_for_packages
     case distribution = fetch_os_distribution
     when 'Fedora'
-      %{#{sudo} /bin/sh -c "yum erase -y ruby ; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
+      %{#{sudo} /bin/sh -c "yum erase -qy ruby ; yum install -qy curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
     when 'RedHat'
-      %{#{sudo} /bin/sh -c "yum erase -y ruby ruby-libs; yum install -y curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
+      %{#{sudo} /bin/sh -c "yum erase -qy ruby ruby-libs; yum install -qy curl gcc make bzip2 tar which patch gcc-c++ zlib-devel openssl-devel readline-devel"}
     when 'Ubuntu'
       %{#{sudo} /bin/sh -c "apt-get remove -q -y '^.*ruby.*' ; apt-get install -q -y build-essential patch zlib1g-dev libssl-dev libreadline5-dev"}
     else
