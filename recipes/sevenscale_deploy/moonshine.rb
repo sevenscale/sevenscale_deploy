@@ -33,10 +33,10 @@ namespace :moonshine do
     moonshine_setup_manifest_path = fetch(:moonshine_setup_manifest, File.expand_path('../../../../moonshine/lib/moonshine_setup_manifest.rb', __FILE__))
 
     upload moonshine_yml_path.to_s,       '/tmp/moonshine.yml'
-    upload moonshine_setup_manifest_path, '/tmp/moonshine_setup_manifest.rb'
+    upload moonshine_setup_manifest_path, "/tmp/#{File.basename(moonshine_setup_manifest_path)}"
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo '/bin/sh -c "shadow_puppet /tmp/moonshine_setup_manifest.rb; rm -f /tmp/moonshine_setup_manifest.rb /tmp/moonshine.yml"'
+      sudo '/bin/sh -c "shadow_puppet /tmp/#{File.basename(moonshine_setup_manifest_path)}; rm -f /tmp/#{File.basename(moonshine_setup_manifest_path)} /tmp/moonshine.yml"'
     end
   end
 
