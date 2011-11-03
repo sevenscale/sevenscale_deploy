@@ -108,7 +108,11 @@ namespace :mysql do
     servers = self.roles.values.collect do |role|
       role.servers.collect do |server|
         [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
-          [ host, IPSocket.getaddress(host) ]
+          if fetch(:mysql_only_grant_ips, false)
+            IPSocket.getaddress(host)
+          else
+            [ host, IPSocket.getaddress(host) ]
+          end
         end
       end
     end.flatten.uniq
