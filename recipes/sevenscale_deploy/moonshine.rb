@@ -7,7 +7,6 @@ namespace :moonshine do
   desc 'Setup moonshine'
   task :setup do
     ensure_installed
-    install_git
     setup_directories
   end
 
@@ -46,30 +45,6 @@ namespace :moonshine do
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
       sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
-    end
-  end
-
-  desc 'Install git'
-  task :install_git do
-    install_git_package
-  end
-
-  def fetch_os_distribution
-    fetch(:os_distribution) { capture("/usr/bin/lsb_release -a")[/Distributor ID:\s+(.*)$/, 1].chomp }
-  end
-
-  def install_git_package
-    users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      case distribution = fetch_os_distribution
-      when 'Fedora'
-        sudo 'yum install -qy git-core'
-      when 'RedHat'
-        sudo '/bin/sh -c "rpm -Uvh http://download.fedora.redhat.com/pub/epel/5/i386/epel-release-5-4.noarch.rpm; yum install -qy git"'
-      when 'Ubuntu'
-        sudo 'apt-get install -q -y git-core'
-      else
-        raise "Unknown distribution: #{distribution.inspect}"
-      end
     end
   end
 end
