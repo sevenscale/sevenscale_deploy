@@ -122,7 +122,7 @@ namespace :iptables do
     if from_hosts = (options[:from_host] || options[:from_hosts])
       servers += Array(from_hosts).collect do |host|
         Array(host).flatten.uniq.collect do |host|
-          IPSocket.getaddress(host)
+          IPSocket.getaddress(host) rescue host
         end
       end
     end
