@@ -104,6 +104,7 @@ namespace :mysql do
     db_password      = options[:password]           || fetch(:db_password) { fetch(:password) }
     db_name          = options[:database]           || fetch(:db_name)     { fetch(:application) }
     db_host          = options.delete(:run_on_host) || options[:host]
+    db_privs         = options[:privileges]         || 'ALL PRIVILEGES'
 
     servers = self.roles.values.collect do |role|
       role.servers.collect do |server|
@@ -123,7 +124,7 @@ namespace :mysql do
     mysql_commands = []
 
     servers.each do |server|
-      mysql_commands << %{GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
+      mysql_commands << %{GRANT #{db_privs} ON #{db_name}.* TO '#{db_user}'@'#{server}' IDENTIFIED BY '#{db_password}';}
     end
     mysql_commands << %{FLUSH PRIVILEGES;}
 
