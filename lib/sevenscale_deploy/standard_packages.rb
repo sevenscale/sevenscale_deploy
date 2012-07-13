@@ -4,7 +4,7 @@ module SevenScaleDeploy
     def ntp(options = {})
       package 'ntp', :ensure => :installed
 
-      enabled = options[:ntp] != false
+      enabled = options[:enabled] != false
 
       service 'ntp',
         :name => Facter.case(:operatingsystem, 'Ubuntu' => 'ntp', 'Fedora' => 'ntpd', 'RedHat' => 'ntpd', 'CentOS' => 'ntpd', :default => 'ntp'),
