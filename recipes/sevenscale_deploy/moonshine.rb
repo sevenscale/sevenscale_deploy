@@ -35,7 +35,7 @@ namespace :moonshine do
     upload moonshine_setup_manifest_path, "/tmp/#{File.basename(moonshine_setup_manifest_path)}"
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo %{/bin/sh -c "shadow_puppet /tmp/#{File.basename(moonshine_setup_manifest_path)}; rm -f /tmp/#{File.basename(moonshine_setup_manifest_path)} /tmp/moonshine.yml"}
+      sudo %{/bin/sh -c "ruby -S -rthread shadow_puppet /tmp/#{File.basename(moonshine_setup_manifest_path)}; rm -f /tmp/#{File.basename(moonshine_setup_manifest_path)} /tmp/moonshine.yml"}
     end
   end
 
@@ -44,7 +44,7 @@ namespace :moonshine do
     moonshine_manifest = fetch(:moonshine_manifest, 'application_manifest')
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
+      sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ ruby -S -rthread shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
     end
   end
 end
