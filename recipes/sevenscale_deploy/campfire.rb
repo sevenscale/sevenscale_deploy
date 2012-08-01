@@ -42,7 +42,12 @@ namespace :campfire do
         if ::Interrupt === ex
           message << " was canceled."
         else
-          message << " failed with exception #{ex.class}: #{ex.message}"
+          message << " failed with exception #{ex.class}: "
+          if ex.message.to_s.length > 200
+            message << ex.message.to_s[0..200] << "..."
+          else
+            message << ex.message.to_s
+          end
         end
 
         speak.call message
