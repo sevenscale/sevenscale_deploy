@@ -3,7 +3,7 @@ namespace :capistrano do
   after 'deploy:finalize_update', 'capistrano:write_capistrano_variables'
 
   desc 'Write servers config file'
-  task :write_servers do
+  task :write_servers, :except => { :no_release => true } do
     next if fetch(:no_capistrano_servers_yml, false)
 
     config_hash = {}
@@ -26,7 +26,7 @@ namespace :capistrano do
 
 
   desc 'Write capistano configuration settings'
-  task :write_capistrano_variables do
+  task :write_capistrano_variables, :except => { :no_release => true } do
     config_hash = {}
 
     basic_types = lambda do |v|

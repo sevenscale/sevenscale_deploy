@@ -3,7 +3,7 @@ namespace :db do
   after "deploy:update_code", 'db:symlink'
 
   desc "Deploy database.yml"
-  task :create_config do
+  task :create_config, :except => { :no_release => true } do
     db_user     = fetch(:db_user)     { fetch(:user) }
     db_password = fetch(:db_password) { fetch(:password) }
     db_name     = fetch(:db_name)     { fetch(:application) }
@@ -66,7 +66,7 @@ namespace :db do
   end
 
   desc "Make symlink for database yaml"
-  task :symlink do
+  task :symlink, :except => { :no_release => true } do
     run "ln -nfs #{shared_path}/config/database.yml #{latest_release}/config/database.yml"
   end
 

@@ -1,5 +1,5 @@
 namespace :shared do
-  task :symlink do
+  task :symlink, :except => { :no_release => true } do
     shared_files       = Array(fetch(:shared_files, []))
     shared_directories = Array(fetch(:shared_directories, []))
     cmd                = []
