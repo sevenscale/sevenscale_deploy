@@ -4,7 +4,9 @@ namespace :github do
     task :default do
       branch = fetch(:branch, 'master')
       if repo = repository[/github.com:(.*)\.git$/, 1]
-        system 'open', "http://github.com/#{repo}/compare/#{current_revision[0..8]}...#{branch}"
+        url = "http://github.com/#{repo}/compare/#{current_revision[0..8]}...#{branch}"
+        puts url
+        system 'open', url
       else
         raise "The current repository '#{repository}' is not hosted on github"
       end
@@ -13,7 +15,9 @@ namespace :github do
     desc 'Display pending changes in master in a browser'
     task :master do
       if repo = repository[/github.com:(.*)\.git$/, 1]
-        system 'open', "http://github.com/#{repo}/compare/#{current_revision[0..8]}...master"
+        url = "http://github.com/#{repo}/compare/#{current_revision[0..8]}...master"
+        puts url
+        system 'open', url
       else
         raise "The current repository '#{repository}' is not hosted on github"
       end
