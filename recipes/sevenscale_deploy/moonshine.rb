@@ -15,8 +15,9 @@ namespace :moonshine do
     commands = [
       "system(*%w(gem install activesupport -v 2.3.5 --no-rdoc --no-ri)) unless Gem.available?(%(activesupport))",
       "system(*%w(gem install shadow_puppet --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
-      "system(*%w(gem install rake -v 0.8.7 --no-rdoc --no-ri)) unless Gem.available?(%(rake))"
-      ]
+      "system(*%w(gem install rake -v 0.8.7 --no-rdoc --no-ri)) unless Gem.available?(%(rake))",
+      "system(*%w(gem install libshadow --no-rdoc --no-ri)) unless Gem.available?(%(libshadow))",
+    ]
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
       sudo(%(/bin/sh -c "ruby -rubygems -e '#{commands.join("; ")}'"), :shell => false)
@@ -30,12 +31,20 @@ namespace :moonshine do
   task :setup_directories do
     moonshine_yml_path            = fetch(:moonshine_yml_path, File.join(ENV['RAILS_ROOT'] || Dir.pwd, 'config', 'moonshine.yml'))
     moonshine_setup_manifest_path = fetch(:moonshine_setup_manifest, File.expand_path('../../../../moonshine/lib/moonshine_setup_manifest.rb', __FILE__))
+    moonshine_setup_support_files = Array(fetch(:moonshine_setup_support_files, []))
+
+    remote_files = [ '/tmp/moonshine.yml', "/tmp/#{File.basename(moonshine_setup_manifest_path)}" ]
 
     upload moonshine_yml_path.to_s,       '/tmp/moonshine.yml'
     upload moonshine_setup_manifest_path, "/tmp/#{File.basename(moonshine_setup_manifest_path)}"
 
+    moonshine_setup_support_files.each do |filename|
+      upload filename, "/tmp/#{File.basename(filename)}"
+      remote_files << "/tmp/#{File.basename(filename)}"
+    end
+
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo %{/bin/sh -c "ruby -S -rthread shadow_puppet /tmp/#{File.basename(moonshine_setup_manifest_path)}; rm -f /tmp/#{File.basename(moonshine_setup_manifest_path)} /tmp/moonshine.yml"}
+      sudo %{/bin/sh -c "ruby -S -rthread shadow_puppet /tmp/#{File.basename(moonshine_setup_manifest_path)}; rm -f #{remote_files.join(' ')}"}
     end
   end
 

@@ -157,6 +157,16 @@ namespace :users do
     end
   end
 
+  def invoke_with_brute_force_authentication(&block)
+    brute_force_authenticate.each do |(user, password), servers|
+      users.connect_as(user, password) do
+        hosts = servers.map { |s| s.host }
+
+        with_env('HOSTFILTER', hosts.join(','), &block)
+      end
+    end
+  end
+
   desc "Ensure all systems can fully authenticate"
   task :authenticate do
     brute_force_authenticate.each do |(user, password), servers|
