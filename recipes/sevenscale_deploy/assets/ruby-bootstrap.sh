@@ -4,17 +4,29 @@ set -e
 operatingsystem() {
   if [ -f /etc/fedora-release ]; then
     echo "fedora"
+  elif [ -f /etc/redhat-release ]; then
+    local contents="$(cat /etc/redhat-release)"
+    case "$contents" in
+      Scientific*Linux*)
+      echo "scientific"
+      ;;
+      *)
+      echo "redhat"
+      ;;
+    esac
   else
     echo "unknown"
   fi
 }
 
 install_yum_repo() {
+  local os="$(operatingsystem)"
+
   if [ ! -f /etc/yum.repos.d/papertrail.repo ]; then
     cat <<EOF > /etc/yum.repos.d/papertrail.repo
 [papertrail]
 name=Papertrail Packages for Fedora \$releasever - \$basearch
-baseurl=https://s3.amazonaws.com/yum.papertrailapp.com/fedora/\$releasever/
+baseurl=https://s3.amazonaws.com/yum.papertrailapp.com/$os/\$releasever/
 enabled=1
 gpgcheck=0
 EOF
@@ -22,7 +34,7 @@ EOF
 }
 
 install_ree() {
-  yum install --nogpgcheck -y ruby-enterprise-edition
+  yum install --nogpgcheck -q -y ruby-enterprise-edition
 }
 
 install_rubygems() {
@@ -50,7 +62,10 @@ uninstall_system_ruby() {
 
   case "$os" in
     "fedora")
-      yum erase -qy ruby ruby-libs
+      yum erase -q -y ruby ruby-libs
+      ;;
+    "scientific")
+      yum erase -q -y ruby ruby-libs ruby-devel
       ;;
   esac
 }
@@ -63,6 +78,15 @@ install_ruby() {
       uninstall_system_ruby
       install_yum_repo
       install_ree
+      ;;
+    "scientific")
+      uninstall_system_ruby
+      install_yum_repo
+      install_ree
+      ;;
+    *)
+      echo "Can't install ruby on '$os'. Don't know how."
+      exit 1
       ;;
   esac
 }

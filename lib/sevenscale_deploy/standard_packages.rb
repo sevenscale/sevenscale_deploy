@@ -22,22 +22,26 @@ module SevenScaleDeploy
 
     def mysql_libraries
       case Facter.operatingsystem
-      when 'RedHat', 'CentOS'
+      when 'RedHat', 'CentOS', 'Scientific'
         package 'mysql-devel', :ensure => :installed
       when 'Fedora'
         package 'mysql-libs',  :ensure => :installed
         package 'mysql-devel', :ensure => :installed
+      else
+        raise "Unknown operatingsystem: #{Facter.operatingsystem}"
       end
     end
 
     def mysql_gem
       case Facter.operatingsystem
-      when 'RedHat', 'CentOS'
+      when 'RedHat', 'CentOS', 'Scientific'
         package 'mysql-gem', :name => 'mysql', :provider => :gem, :ensure => :installed,
           :require => [ package('mysql-devel') ]
       when 'Fedora'
         package 'mysql-gem', :name => 'mysql', :provider => :gem, :ensure => :installed,
           :require => [ package('mysql-devel'), package('mysql-libs') ]
+      else
+        raise "Unknown operatingsystem: #{Facter.operatingsystem}"
       end
     end
 
@@ -68,7 +72,7 @@ module SevenScaleDeploy
 
     def typhoeus_gem_dependencies(options = {})
       case Facter.operatingsystem
-      when 'RedHat', 'CentOS'
+      when 'RedHat', 'CentOS', 'Scientific'
         package 'curl-devel', options.reverse_merge(:ensure => :installed)
       when 'Fedora'
         case Facter.operatingsystemrelease
