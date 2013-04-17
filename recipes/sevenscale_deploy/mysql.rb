@@ -128,13 +128,11 @@ namespace :mysql do
     end
     mysql_commands << %{FLUSH PRIVILEGES;}
 
-    mysql_commands.each do |command|
-      mysql_auth = "-u#{db_root_user}"
-      mysql_auth << " -p" if db_root_password
+    mysql_auth = "-u#{db_root_user}"
+    mysql_auth << " -p" if db_root_password
 
-      run %(mysql #{mysql_auth} -e "#{command}"), :hosts => db_host do |ch, stream, out|
-        ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
-      end
+    run %(mysql #{mysql_auth} -e "#{mysql_commands.join(' ')}"), :hosts => db_host do |ch, stream, out|
+      ch.send_data "#{db_root_password}\n" if out=~ /^Enter password:/
     end
   end
 end
