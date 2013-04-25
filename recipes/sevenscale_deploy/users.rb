@@ -100,6 +100,12 @@ namespace :users do
 
   def brute_force_authenticate
     auths = [ [ fetch(:user), fetch(:password) ] ]
+    
+    # Provide a way to provide credentials just for initial setup
+    if fetch(:setup_user, nil) && fetch(:setup_password, nil)
+      auths << [ fetch(:setup_user), fetch(:setup_password) ]
+    end
+
     auths += @auths_by_server.keys if @auths_by_server
 
     auths_by_server = Hash.new{ |h,k| h[k] = [] }
