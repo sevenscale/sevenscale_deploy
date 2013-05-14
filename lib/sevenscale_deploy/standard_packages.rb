@@ -27,6 +27,8 @@ module SevenScaleDeploy
       when 'Fedora'
         package 'mysql-libs',  :ensure => :installed
         package 'mysql-devel', :ensure => :installed
+      when 'Darwin'
+        # Do nothing
       else
         raise "Unknown operatingsystem: #{Facter.operatingsystem}"
       end
@@ -40,6 +42,8 @@ module SevenScaleDeploy
       when 'Fedora'
         package 'mysql-gem', :name => 'mysql', :provider => :gem, :ensure => :installed,
           :require => [ package('mysql-devel'), package('mysql-libs') ]
+      when 'Darwin'
+        # Do nothing
       else
         raise "Unknown operatingsystem: #{Facter.operatingsystem}"
       end
