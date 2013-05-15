@@ -7,7 +7,7 @@ module SevenScaleDeploy
       enabled = options[:enabled] != false
 
       service 'ntp',
-        :name => Facter.case(:operatingsystem, 'Ubuntu' => 'ntp', 'Fedora' => 'ntpd', 'RedHat' => 'ntpd', 'CentOS' => 'ntpd', :default => 'ntp'),
+        :name => Facter.case(:operatingsystem, 'Ubuntu' => 'ntp', 'Fedora' => 'ntpd', 'RedHat' => 'ntpd', 'CentOS' => 'ntpd', 'Scientific' => 'ntpd', :default => 'ntp'),
         :ensure => enabled ? :running : :stopped, :enable => enabled, :require => package('ntp'), :pattern => 'ntpd'
     end
 
