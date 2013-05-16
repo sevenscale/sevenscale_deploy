@@ -111,7 +111,14 @@ namespace :iptables do
     protocol ||= 'tcp'
 
     servers = []
-    if from_roles = (options[:from_role] || options[:from_roles])
+    
+    if options[:from_all]
+      servers += find_servers(:skip_hostfilter => true).collect do |server|
+        [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
+          IPSocket.getaddress(host)
+        end
+      end
+    elsif from_roles = (options[:from_role] || options[:from_roles])
       servers += find_servers(:roles => from_roles, :skip_hostfilter => true).collect do |server|
         [ server.host, Array(server.options[:ips]) ].flatten.uniq.collect do |host|
           IPSocket.getaddress(host)
