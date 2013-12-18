@@ -53,7 +53,7 @@ namespace :moonshine do
     moonshine_manifest = fetch(:moonshine_manifest, 'application_manifest')
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
-      sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ ruby -S -rthread shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb"
+      sudo "env RAILS_ROOT=#{latest_release} RAILS_ENV=#{fetch(:rails_env)} CAPISTRANO_ROLES=$CAPISTRANO:ROLES$ ruby -S -rthread shadow_puppet #{latest_release}/app/manifests/#{moonshine_manifest}.rb; true"
     end
   end
 end
