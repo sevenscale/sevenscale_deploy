@@ -88,7 +88,7 @@ namespace :slack do
 
       task :notify_finished do
         debug_message = "sending message on #{short_domain} Slack"
-        debug_message << " to #{room}" if room
+        debug_message << " to #{config[:channel]}" if config[:channel]
         logger.debug debug_message
 
         message = "[CAP] %s's deploy of %s" % [
