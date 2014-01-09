@@ -14,7 +14,7 @@ namespace :moonshine do
   task :ensure_installed do
     commands = [
       "system(*%w(gem install activesupport -v 2.3.5 --no-rdoc --no-ri)) unless Gem.available?(%(activesupport))",
-      "system(*%w(gem install shadow_puppet --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
+      "system(*%w(gem install shadow_puppet -v 0.6.5 --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
       "system(*%w(gem install rake -v 0.8.7 --no-rdoc --no-ri)) unless Gem.available?(%(rake))",
       "system(*%w(gem install libshadow --no-rdoc --no-ri)) unless Gem.available?(%(libshadow))",
     ]
