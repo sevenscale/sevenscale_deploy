@@ -37,6 +37,7 @@ module SevenScaleDeploy
       exec "passenger-install-apache2-module",
         :command => "passenger-install-apache2-module --auto",
         :subscribe => package('passenger'),
+        :timeout => 60 * 15,
         :refreshonly => true,
         :require => [ package('apr-devel'), package('apache2') ]
 
