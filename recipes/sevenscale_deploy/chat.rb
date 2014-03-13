@@ -21,7 +21,7 @@ def register_chat(service, domain, &speak)
         end
         message << " with `cap #{ARGV.join(' ')}` (#{compare_url})"
 
-        speak.call message
+        speak.call message, :start
 
         # Make sure we say something if there's an error
         at_exit do
@@ -44,7 +44,7 @@ def register_chat(service, domain, &speak)
               end
             end
 
-            speak.call message
+            speak.call message, :error
           end
         end
       end
@@ -58,7 +58,7 @@ def register_chat(service, domain, &speak)
         end
         message << " is done."
 
-        speak.call message
+        speak.call message, :finished
       end
     end
   end
@@ -87,7 +87,7 @@ namespace :campfire do
     end
 
     short_domain = domain[/^([^\.]+)/, 1]
-    register_chat 'campfire', short_domain do |message|
+    register_chat 'campfire', short_domain do |message, _|
       message  = "[CAP] #{message}"
       campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl], :token => token)
       room     = campfire.find_room_by_name(config[:room]) rescue nil
@@ -128,8 +128,17 @@ namespace :slack do
     default_payload['username']   = config[:username] if config[:username]
     default_payload['icon_emoji'] = config[:emoji]    if config[:emoji]
 
-    register_chat 'slack', domain do |message|
-      payload = default_payload.merge('text' => escape_html_entities(message))
+    register_chat 'slack', domain do |message, status|
+      status_color = case status
+                     when :error then 'danger'
+                     when :finished then 'good'
+                     else ''
+                     end
+
+      payload = default_payload.merge('attachments' => [
+        { 'text'  => escape_html_entities(message),
+          'color' => status_color }])
+
       uri = URI.parse("https://#{domain}.slack.com/services/hooks/incoming-webhook?token=#{token}")
       http = Net::HTTP.new(uri.host, uri.port)
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
