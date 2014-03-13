@@ -1,10 +1,33 @@
-def register_chat(service, domain, &speak)
-  namespace service do
+# Usage:
+#
+#   slack.register 'sevenscale', 'b8d9b31...', :channel  => 'Ops'
+#                                              :username => 'Robot'
+#                                              :emoji    => ':godmode:'
+#
+# Options:
+#
+# All are optional. Defaults are configured in the incoming Slack webhook.
+#
+#   channel: Name of the channel to notify.
+#   username: The name as shown in the message.
+#   emoji: The avatar as shown in the message.
+#
+namespace :slack do
+  set(:previous_current_revision) { raise "Previous current revision was never fetched" }
+  task :save_previous_current_revision do
+    set(:previous_current_revision, (capture("cat #{current_path}/REVISION").chomp rescue nil))
+  end
+
+  def escape_html_entities(message)
+    message.gsub('<', '&lt;').gsub('>', '&gt;')
+  end
+
+  def register_slack(domain, &speak)
     namespace domain do
-      before 'deploy',            "#{service}:#{domain}:notify_start"
-      before 'deploy:migrations', "#{service}:#{domain}:notify_start"
-      after  'deploy',            "#{service}:#{domain}:notify_finished"
-      after  'deploy:migrations', "#{service}:#{domain}:notify_finished"
+      before 'deploy',            "slack:#{domain}:notify_start"
+      before 'deploy:migrations', "slack:#{domain}:notify_start"
+      after  'deploy',            "slack:#{domain}:notify_finished"
+      after  'deploy:migrations', "slack:#{domain}:notify_finished"
 
       task :notify_start do
         deployer    = ENV['USER']
@@ -62,63 +85,6 @@ def register_chat(service, domain, &speak)
       end
     end
   end
-end
-
-# Originally lifted from:
-# http://github.com/vigetlabs/viget_deployment/tree/master/recipes/campfire.rb
-#
-# Usage:
-#
-#    campfire.register 'sevenscale', 'b8d9b31...', :room => 'crazypants',
-#                                                  :ssl  => true
-#
-namespace :campfire do
-  set(:previous_current_revision) { raise "Previous current revision was never fetched" }
-  task :save_previous_current_revision do
-    set(:previous_current_revision, (capture("cat #{current_path}/REVISION").chomp rescue nil))
-  end
-
-  def register(domain, token, config = {})
-    begin
-      require 'uri'
-      require 'tinder'
-    rescue LoadError
-      return false # skip campfire stuff if tinder can't be required
-    end
-
-    short_domain = domain[/^([^\.]+)/, 1]
-    register_chat 'campfire', short_domain do |message, _|
-      message  = "[CAP] #{message}"
-      campfire = Tinder::Campfire.new(domain, :ssl => config[:ssl], :token => token)
-      room     = campfire.find_room_by_name(config[:room]) rescue nil
-      room.speak message if room
-    end
-  end
-end
-
-# Usage:
-#
-#   slack.register 'sevenscale', 'b8d9b31...', :channel  => 'Ops'
-#                                              :username => 'Robot'
-#                                              :emoji    => ':godmode:'
-#
-# Options:
-#
-# All are optional. Defaults are configured in the incoming Slack webhook.
-#
-#   channel: Name of the channel to notify.
-#   username: The name as shown in the message.
-#   emoji: The avatar as shown in the message.
-#
-namespace :slack do
-  set(:previous_current_revision) { raise "Previous current revision was never fetched" }
-  task :save_previous_current_revision do
-    set(:previous_current_revision, (capture("cat #{current_path}/REVISION").chomp rescue nil))
-  end
-
-  def escape_html_entities(message)
-    message.gsub('<', '&lt;').gsub('>', '&gt;')
-  end
 
   def register(domain, token, config = {})
     require 'net/http'
@@ -128,7 +94,7 @@ namespace :slack do
     default_payload['username']   = config[:username] if config[:username]
     default_payload['icon_emoji'] = config[:emoji]    if config[:emoji]
 
-    register_chat 'slack', domain do |message, status|
+    register_slack domain do |message, status|
       status_color = case status
                      when :error then 'danger'
                      when :finished then 'good'
