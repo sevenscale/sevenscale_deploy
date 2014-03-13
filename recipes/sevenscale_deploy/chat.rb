@@ -18,10 +18,6 @@ namespace :slack do
     set(:previous_current_revision, (capture("cat #{current_path}/REVISION").chomp rescue nil))
   end
 
-  def escape_html_entities(message)
-    message.gsub('<', '&lt;').gsub('>', '&gt;')
-  end
-
   def register_slack(domain, &speak)
     namespace domain do
       before 'deploy',            "slack:#{domain}:notify_start"
@@ -36,13 +32,13 @@ namespace :slack do
         github_repo = repository[/github.com:(.*)\.git$/, 1]
         compare_url = "http://github.com/#{github_repo}/compare/#{deployed}...#{deploying}"
 
-        message = "%s is deploying (%s..%s) of %s" % [
-          ENV['USER'], deployed, deploying, fetch(:application),
+        message = "%s is deploying (<%s|%s..%s>) of %s" % [
+          ENV['USER'], compare_url, deployed, deploying, fetch(:application),
         ]
         if rails_env = fetch(:rails_env, nil)
           message << " to #{stage}"
         end
-        message << " with `cap #{ARGV.join(' ')}` (#{compare_url})"
+        message << " with `cap #{ARGV.join(' ')}`"
 
         speak.call message, :start
 
@@ -96,13 +92,12 @@ namespace :slack do
 
     register_slack domain do |message, status|
       status_color = case status
-                     when :error then 'danger'
+                     when :error    then 'danger'
                      when :finished then 'good'
-                     else ''
                      end
 
       payload = default_payload.merge('attachments' => [
-        { 'text'  => escape_html_entities(message),
+        { 'text'  => message,
           'color' => status_color }])
 
       uri = URI.parse("https://#{domain}.slack.com/services/hooks/incoming-webhook?token=#{token}")
