@@ -1,6 +1,6 @@
 namespace :capistrano do
-  after 'deploy:finalize_update', 'capistrano:write_servers'
-  after 'deploy:finalize_update', 'capistrano:write_capistrano_variables'
+  before 'deploy:finalize_update', 'capistrano:write_servers'
+  before 'deploy:finalize_update', 'capistrano:write_capistrano_variables'
 
   desc 'Write servers config file'
   task :write_servers, :except => { :no_release => true } do
