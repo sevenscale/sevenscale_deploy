@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/../../../moonshine/lib/moonshine"
 
+require 'moonshine/manifest/rails'
 require 'sevenscale_deploy/basic_manifest'
 require 'sevenscale_deploy/standard_packages'
 require 'sevenscale_deploy/standard_facts'
