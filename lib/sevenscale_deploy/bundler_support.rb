@@ -13,7 +13,7 @@ module SevenScaleDeploy
 
     def parse_gemfile_lock(lockfile)
       return parse_gemfile_lock_0_9(lockfile)
-    rescue ArgumentError
+    rescue Exception
       return parse_gemfile_lock_1_0(lockfile)
     end
 
