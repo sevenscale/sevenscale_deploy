@@ -30,7 +30,7 @@ module SevenScaleDeploy
       when 'Darwin'
         # Do nothing
       else
-        raise "Unknown operatingsystem: #{Facter.operatingsystem}"
+        # Do nothing
       end
     end
 
@@ -45,7 +45,7 @@ module SevenScaleDeploy
       when 'Darwin'
         # Do nothing
       else
-        raise "Unknown operatingsystem: #{Facter.operatingsystem}"
+        # Do nothing
       end
     end
 
