@@ -14,10 +14,10 @@ namespace :moonshine do
   task :ensure_installed do
     commands = [
       "system(*%w(gem install activesupport -v 2.3.5 --no-rdoc --no-ri)) unless Gem.available?(%(activesupport))",
+      "system(*%w(gem install i18n -v 0.6.4 --no-rdoc --no-ri)) unless Gem.available?(%(i18n))",
       "system(*%w(gem install shadow_puppet -v 0.6.5 --no-rdoc --no-ri)) unless Gem.available?(%(shadow_puppet))",
       "system(*%w(gem install rake -v 0.8.7 --no-rdoc --no-ri)) unless Gem.available?(%(rake))",
       "system(*%w(gem install libshadow --no-rdoc --no-ri)) unless Gem.available?(%(libshadow))",
-      "system(*%w(gem install i18n -v 0.6.4 --no-rdoc --no-ri)) unless Gem.available?(%(i18n))",
     ]
 
     users.connect_as(fetch(:shadow_puppet_user, fetch(:user)), fetch(:shadow_puppet_password, fetch(:password))) do
